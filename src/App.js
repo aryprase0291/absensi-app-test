@@ -1655,7 +1655,7 @@ function DbAbsenScreen({ user, setView }) {
 
       <div className="bg-indigo-50 border border-indigo-200 p-3 rounded-lg mb-4 text-xs text-indigo-800">
         <p className="font-bold flex items-center gap-1"><Info className="w-3 h-3"/> Informasi:</p>
-        <p>Data di bawah ini ditarik langsung dari Mesin Fingerprint (Sheet dbabsen) berdasarkan NIK Anda: <strong>{user.noPayroll}</strong>.</p>
+        <p>Data di bawah ini sinkron langsung dari Mesin Fingerprint - <strong>{user.noPayroll}</strong>.</p>
       </div>
 
       {loading ? (
@@ -1664,7 +1664,7 @@ function DbAbsenScreen({ user, setView }) {
         <div className="space-y-3">
             {list.length === 0 && (
                 <div className="text-center py-10 text-gray-400">
-                    <p>Tidak ada data ditemukan untuk NIK {user.noPayroll}.</p>
+                    <p>Tidak ada data ditemukan untuk PAYROLL {user.noPayroll}.</p>
                 </div>
             )}
 
@@ -1685,11 +1685,11 @@ function DbAbsenScreen({ user, setView }) {
                     <div className="grid grid-cols-2 gap-y-2 text-sm">
                         <div>
                             <p className="text-[10px] text-gray-400">Jam Masuk</p>
-                            <p className="font-mono font-bold text-green-600">{formatTimeOnly(item.masuk)}</p>
+                            <p className="font-medium font-bold text-green-600">{formatTimeOnly(item.masuk)}</p>
                         </div>
                         <div>
                             <p className="text-[10px] text-gray-400">Jam Pulang</p>
-                            <p className="font-mono font-bold text-red-600">{formatTimeOnly(item.pulang)}</p>
+                            <p className="font-medium font-bold text-red-600">{formatTimeOnly(item.pulang)}</p>
                         </div>
                         <div>
                             <p className="text-[10px] text-gray-400">Jam Kerja</p>
@@ -1705,13 +1705,17 @@ function DbAbsenScreen({ user, setView }) {
                     </div>
 
                     {item.waktuScan && (
-                        <div className="mt-2 bg-gray-50 p-2 rounded border border-gray-100">
-                            <p className="text-[10px] text-gray-400 mb-1 flex items-center gap-1"><ScanFace className="w-3 h-3"/> Log Waktu Scan:</p>
-                            <p className="text-[10px] font-mono text-gray-600 break-words leading-tight">
-                                {item.waktuScan}
-                            </p>
-                        </div>
-                    )}
+    <div className="mt-2 bg-gray-50 p-2 rounded border border-gray-100">
+        <p className="text-[10px] text-gray-400 mb-1 flex items-center gap-1">
+            <ScanFace className="w-3 h-3"/> Log Waktu Scan:
+        </p>
+        <p className="text-[10px] font-mono text-gray-600 break-words leading-tight">
+            {/* --- UPDATE BAGIAN INI --- */}
+            {String(item.waktuScan).split(' ').map(t => formatTimeOnly(t)).join(' ')}
+            {/* ------------------------- */}
+        </p>
+    </div>
+)}
                 </div>
             ))}
         </div>
