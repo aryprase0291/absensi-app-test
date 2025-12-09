@@ -1697,10 +1697,11 @@ function DbAbsenScreen({ user, setView }) {
                         </div>
                         <div>
                             <p className="text-[10px] text-gray-400">Telat</p>
+                            {/* Update baris di bawah ini */}
                             <p className={`font-medium ${item.telat ? 'text-orange-600' : 'text-gray-600'}`}>
-                                {item.telat || '-'}
+                            {formatTimeOnly(item.telat)} 
                             </p>
-                        </div>
+                      </div>
                     </div>
 
                     {item.waktuScan && (
