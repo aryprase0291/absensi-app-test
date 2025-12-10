@@ -2077,11 +2077,11 @@ function DbAbsenScreen({ user, setView }) {
                     <div className="grid grid-cols-2 gap-y-2 text-sm">
                         <div>
                             <p className="text-[10px] text-gray-400">Jam Masuk</p>
-                            <p className="font-medium font-bold text-green-600">{formatTimeOnly(item.masuk)}</p>
+                            <p className="font-medium font-bold text-blue-600">{formatTimeOnly(item.masuk)}</p>
                         </div>
                         <div>
                             <p className="text-[10px] text-gray-400">Jam Pulang</p>
-                            <p className="font-medium font-bold text-red-600">{formatTimeOnly(item.pulang)}</p>
+                            <p className="font-medium font-bold text-blue-600">{formatTimeOnly(item.pulang)}</p>
                         </div>
                         <div>
                             <p className="text-[10px] text-gray-400">Jam Kerja</p>
@@ -2089,7 +2089,7 @@ function DbAbsenScreen({ user, setView }) {
                         </div>
                         <div>
                             <p className="text-[10px] text-gray-400">Telat</p>
-                            <p className={`font-medium ${item.telat ? 'text-orange-600' : 'text-gray-600'}`}>
+                            <p className={`font-medium ${item.telat ? 'text-red-600' : 'text-gray-600'}`}>
                             {formatTimeOnly(item.telat)} 
                             </p>
                       </div>
