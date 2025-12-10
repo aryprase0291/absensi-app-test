@@ -11,7 +11,7 @@ import {
 
 // --- KONFIGURASI URL ---
 // Ganti dengan URL Web App Google Script Anda yang terbaru
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-_hJ7QmuG6ozohn8WNciLnCLndqfDttz34LrQRaMt7d4oasYInTRziup7oYtDz7_BQQ/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR8UgXwyTJmAUuNGBT6jlVfXhTtEswC4j06NIZtYOD_CQgoqruDSKFIaAVwRzNo04k_w/exec';
 
 const ICON_MAP = {
   'Hadir': CheckCircle, 'Pulang': LogOut, 'Ijin': FileText, 'Sakit': AlertTriangle, 'Lembur': Clock, 'Dinas': Briefcase, 'Cuti': Calendar
@@ -99,7 +99,6 @@ export default function AppAbsensi() {
     setMasterData(processedMasterData);
     setUser(userData);
     setView('dashboard');
-
     localStorage.setItem('app_user', JSON.stringify(userData));
     localStorage.setItem('app_master_data', JSON.stringify(processedMasterData));
   };
@@ -116,7 +115,7 @@ export default function AppAbsensi() {
             {user && (
                 <div className="flex items-center gap-3">
                 <button onClick={() => setView('ganti_password')} className="text-white hover:text-blue-200" title="Ganti Password">
-                    <Key className="w-5 h-5" />
+                   <Key className="w-5 h-5" />
                 </button>
                 <button 
                     onClick={handleLogout} 
@@ -141,7 +140,7 @@ export default function AppAbsensi() {
           {view === 'ganti_password' && <ChangePasswordScreen user={user} setView={setView} />}
           {view === 'remark' && <RemarkScreen user={user} setView={setView} />}
           
-          {/* MENU BARU: Input Shift */}
+          {/* MENU BARU: Input Shift (Updated) */}
           {view === 'input_shift' && <ShiftScheduleScreen user={user} setView={setView} masterData={masterData} />}
         </div>
       </div>
@@ -182,13 +181,12 @@ function Dashboard({ user, setUser, setView, masterData }) {
   const canApprove = ['admin', 'hrd', 'manager'].includes(userRole);
   const canAccessPanel = userRole === 'admin' && userRole !== 'hrd';
   const isHRDOrAdmin = ['admin', 'hrd'].includes(userRole);
-  
-  // [NEW] Cek Role Karyawan Shift
   const isShiftWorker = userRole === 'karyawan_shift';
 
   const hour = time.getHours();
   let greeting = 'Selamat Pagi';
   let greetingIcon = '☀️';
+
   if (hour >= 11 && hour < 15) { greeting = 'Selamat Siang'; greetingIcon = '🌤️'; }
   else if (hour >= 15 && hour < 18) { greeting = 'Selamat Sore'; greetingIcon = '🌥️'; }
   else if (hour >= 18) { greeting = 'Selamat Malam'; greetingIcon = '🌙'; }
@@ -197,7 +195,6 @@ function Dashboard({ user, setUser, setView, masterData }) {
   
   return ( 
     <div className="p-4 pb-20"> 
-      
       {/* --- KARTU DASHBOARD UTAMA --- */}
       <div className="relative rounded-3xl p-6 shadow-xl mb-6 overflow-hidden text-white group">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 bg-[length:400%_400%] animate-[gradient_6s_ease_infinite]"></div>
@@ -252,13 +249,11 @@ function Dashboard({ user, setUser, setView, masterData }) {
       
       {/* MENU SHORTCUT */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide"> 
-
         <button onClick={() => setView('history')} className="flex-1 min-w-[100px] bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-1 text-blue-600 font-bold hover:bg-blue-50 transition active:scale-95"><History className="w-5 h-5" /><span className="text-xs">Riwayat</span></button> 
-        
         <button onClick={() => setView('db_absen')} className="flex-1 min-w-[100px] bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-1 text-indigo-600 font-bold hover:bg-indigo-50 transition active:scale-95">
             <Fingerprint className="w-5 h-5" /> 
             <span className="text-xs">Data Mesin</span>
-        </button>
+         </button>
         <button 
             onClick={() => setView('remark')} 
             className={`flex-1 min-w-[100px] bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-1 font-bold transition active:scale-95 ${isHRDOrAdmin ? 'text-purple-600 hover:bg-purple-50' : 'text-orange-600 hover:bg-orange-50'}`}
@@ -286,19 +281,19 @@ function Dashboard({ user, setUser, setView, masterData }) {
          <div className="mb-6">
             <h3 className="font-bold text-gray-700 mb-2 px-1 flex items-center gap-2">
                  <div className="w-1 h-5 bg-indigo-600 rounded-full"></div>
-                 Menu Khusus Shift
+                 Menu Running Shift
             </h3>
             <button 
                 onClick={() => setView('input_shift')}
                 className="w-full bg-indigo-50 border border-indigo-200 p-4 rounded-xl flex items-center justify-between group active:scale-95 transition-all shadow-sm hover:shadow-md hover:bg-indigo-100"
             >
                 <div className="flex items-center gap-3">
-                    <div className="bg-indigo-600 text-white p-2.5 rounded-lg shadow-sm group-hover:rotate-12 transition-transform">
+                     <div className="bg-indigo-600 text-white p-2.5 rounded-lg shadow-sm group-hover:rotate-12 transition-transform">
                         <CalendarCheck className="w-6 h-6" />
                     </div>
                     <div className="text-left">
                         <h4 className="font-bold text-indigo-900">Input Jadwal Shift</h4>
-                        <p className="text-xs text-indigo-600">Atur tanggal & jam kerja Anda sendiri</p>
+                        <p className="text-xs text-indigo-600">Atur tanggal & jam kerja Shift Anda</p>
                     </div>
                 </div>
                 <div className="bg-white p-1.5 rounded-full text-indigo-400">
@@ -307,10 +302,9 @@ function Dashboard({ user, setUser, setView, masterData }) {
             </button>
          </div>
       )}
-      {/* ---------------------------------- */}
 
       <h3 className="font-bold text-gray-700 mb-3 px-1 flex items-center gap-2">
-         <div className="w-1 h-5 bg-blue-600 rounded-full"></div>
+          <div className="w-1 h-5 bg-blue-600 rounded-full"></div>
          Menu Absensi
       </h3> 
 
@@ -321,6 +315,7 @@ function Dashboard({ user, setUser, setView, masterData }) {
             const count = stats[item.value] || stats[item.value.toLowerCase()] || 0; 
             const isAttendance = ['Hadir', 'Pulang'].includes(item.value);
             const isCutiEmpty = item.value === 'Cuti' && (parseInt(user.sisaCuti) || 0) < 1;
+
             return ( 
                 <button 
                     key={item.value} 
@@ -353,13 +348,102 @@ function Dashboard({ user, setUser, setView, masterData }) {
   );
 }
 
-// --- BARU: SHIFT SCHEDULE SCREEN ---
+// --- BARU: SHIFT SCHEDULE SCREEN (LENGKAP: View Report, Edit, Delete, Validasi 1 Jam) ---
 function ShiftScheduleScreen({ user, setView, masterData }) {
     const [date, setDate] = useState('');
     const [selectedShiftValue, setSelectedShiftValue] = useState('');
     const [loading, setLoading] = useState(false);
+    // STATE BARU: Untuk Riwayat dan Edit
+    const [shiftHistory, setShiftHistory] = useState([]);
+    const [editingItem, setEditingItem] = useState(null);
+    // Jika sedang mode edit
+    const [loadingHistory, setLoadingHistory] = useState(false);
 
     const availableShifts = masterData?.shifts || [];
+    // FUNGSI: Cek apakah masih bisa diedit (Max 1 Jam)
+    const isEditable = (waktuInput) => {
+        if (!waktuInput) return false;
+        try {
+            const entryTime = new Date(waktuInput).getTime();
+            const now = new Date().getTime();
+            const diffInHours = (now - entryTime) / (1000 * 60 * 60);
+            return diffInHours <= 1; // True jika kurang dari 1 jam
+        } catch (e) { return false; }
+    };
+
+    // FUNGSI: Ambil Data Riwayat Shift
+    const fetchShiftHistory = useCallback(async () => {
+        setLoadingHistory(true);
+        try {
+            const res = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'get_shift_history', 
+                    userId: user.id
+                })
+            });
+            const data = await res.json();
+            if (data.result === 'success') {
+                setShiftHistory(data.data); 
+            }
+        } catch (e) {
+            console.error("Gagal load history shift");
+        } finally {
+            setLoadingHistory(false);
+        }
+    }, [user.id]);
+
+    useEffect(() => {
+        fetchShiftHistory();
+    }, [fetchShiftHistory]);
+
+    // FUNGSI: Handle Klik Edit
+    const handleEdit = (item) => {
+        let formattedDate = item.tanggal;
+        try {
+            const d = new Date(item.tanggal);
+            if(!isNaN(d.getTime())) {
+                formattedDate = d.toISOString().split('T')[0];
+            }
+        } catch(e) {}
+
+        setDate(formattedDate);
+        setSelectedShiftValue(item.shiftValue);
+        setEditingItem(item); 
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // FUNGSI: Handle Klik Hapus
+    const handleDelete = async (uuid) => {
+        if(!confirm("Yakin ingin menghapus jadwal shift ini?")) return;
+        setLoading(true);
+        try {
+            const res = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'delete_shift_schedule',
+                    uuid: uuid
+                })
+            });
+            const data = await res.json();
+            if (data.result === 'success') {
+                alert("Data berhasil dihapus");
+                fetchShiftHistory(); 
+            } else {
+                alert(data.message);
+            }
+        } catch (e) {
+            alert("Gagal menghapus data.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setEditingItem(null);
+        setDate('');
+        setSelectedShiftValue('');
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -368,28 +452,59 @@ function ShiftScheduleScreen({ user, setView, masterData }) {
             return;
         }
 
-        setLoading(true);
-        // Cari label shift berdasarkan value
         const shiftObj = availableShifts.find(s => s.value === selectedShiftValue);
         const shiftLabel = shiftObj ? shiftObj.label : selectedShiftValue;
+
+        // --- UPDATE VALIDASI: CEK APAKAH TANGGAL SUDAH ADA DAN TERKUNCI ---
+        // Jika sedang TIDAK edit (Mode Input Baru), kita cek apakah tanggal sudah pernah diinput
+        if (!editingItem) {
+            const isLockedDate = shiftHistory.some(item => {
+                let itemDate = item.tanggal;
+                // Normalisasi format tanggal dari history agar sama dengan input (YYYY-MM-DD)
+                try {
+                    const d = new Date(item.tanggal);
+                    // Adjust Timezone offset agar tidak geser hari
+                    const offset = d.getTimezoneOffset() * 60000;
+                    itemDate = new Date(d.getTime() - offset).toISOString().split('T')[0];
+                } catch (e) {}
+                
+                // Jika tanggal sama DAN tidak bisa diedit (expired > 1 jam)
+                return itemDate === date && !isEditable(item.waktuInput);
+            });
+
+            if (isLockedDate) {
+                alert("GAGAL: Tanggal ini sudah ada dan tidak bisa di Tambahkan/diubah.");
+                return;
+            }
+        }
+        // --- END VALIDASI ---
+
+        setLoading(true);
+
+        // Tentukan Action: Edit atau Baru
+        const actionType = editingItem ? 'edit_shift_schedule' : 'submit_shift_schedule';
+        const payload = {
+            action: actionType,
+            userId: user.id,
+            nama: user.nama,
+            tanggal: date,
+            shiftValue: selectedShiftValue,
+            shiftLabel: shiftLabel,
+            uuid: editingItem ? editingItem.uuid : null 
+        };
 
         try {
             const res = await fetch(SCRIPT_URL, {
                 method: 'POST',
-                body: JSON.stringify({
-                    action: 'submit_shift_schedule',
-                    userId: user.id,
-                    nama: user.nama,
-                    tanggal: date,
-                    shiftValue: selectedShiftValue,
-                    shiftLabel: shiftLabel
-                })
+                body: JSON.stringify(payload)
             });
             const data = await res.json();
             if (data.result === 'success') {
                 alert(data.message);
                 setDate('');
                 setSelectedShiftValue('');
+                setEditingItem(null); 
+                fetchShiftHistory();  
             } else {
                 alert(data.message);
             }
@@ -405,14 +520,24 @@ function ShiftScheduleScreen({ user, setView, masterData }) {
         <div className="p-4 h-full overflow-y-auto pb-20">
             <div className="flex items-center gap-2 mb-6">
                 <BackButton onClick={() => setView('dashboard')} />
-                <h2 className="text-xl font-bold ml-2">Input Jadwal Shift</h2>
+                <h2 className="text-xl font-bold ml-2">Jadwal Shift</h2>
             </div>
 
-            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-                <div className="bg-indigo-50 border border-indigo-200 p-3 rounded-lg mb-4 text-xs text-indigo-800">
-                   <p className="font-bold mb-1">Panduan:</p>
-                   <p>Silakan pilih tanggal dan jenis shift yang sesuai dengan jadwal kerja Anda. Data ini akan tersimpan sebagai laporan jadwal shift Anda.</p>
-                </div>
+            {/* --- FORM INPUT --- */}
+            <div className={`bg-white p-5 rounded-xl shadow-sm border mb-6 transition-colors ${editingItem ? 'border-yellow-400 ring-1 ring-yellow-400' : 'border-gray-200'}`}>
+                {editingItem && (
+                    <div className="mb-3 bg-yellow-50 text-yellow-700 p-2 rounded text-xs font-bold flex justify-between items-center">
+                        <span>Sedang Mengedit Data...</span>
+                        <button onClick={handleCancelEdit} className="bg-white border border-yellow-200 px-2 py-1 rounded hover:bg-yellow-100">Batal</button>
+                    </div>
+                )}
+                
+                {!editingItem && (
+                    <div className="bg-indigo-50 border border-indigo-200 p-3 rounded-lg mb-4 text-xs text-indigo-800">
+                       <p className="font-bold mb-1">Panduan:</p>
+                       <p>Silakan input jadwal shift Anda. Data yang sudah diinput bisa diedit/hapus selama 1 jam setelah input.</p>
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -447,15 +572,76 @@ function ShiftScheduleScreen({ user, setView, masterData }) {
                     <button 
                         type="submit" 
                         disabled={loading} 
-                        className="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition flex items-center justify-center gap-2 mt-4"
+                        className={`w-full text-white py-3 rounded-lg font-bold transition flex items-center justify-center gap-2 mt-4 ${editingItem ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}
                     >
                         {loading ? 'Menyimpan...' : (
                             <>
-                                <CheckCircle className="w-5 h-5"/> Simpan Jadwal
+                                {editingItem ? <Edit className="w-5 h-5"/> : <CheckCircle className="w-5 h-5"/>} 
+                                {editingItem ? 'Update Jadwal' : 'Simpan Jadwal'}
                             </>
                         )}
                     </button>
                 </form>
+            </div>
+
+            {/* --- LIST RIWAYAT SHIFT --- */}
+            <div>
+                <h3 className="font-bold text-gray-700 mb-3 px-1 flex items-center gap-2">
+                    <History className="w-4 h-4"/> Riwayat Input Shift
+                </h3>
+
+                {loadingHistory ? <p className="text-center text-gray-400 text-sm">Memuat riwayat...</p> : (
+                    <div className="space-y-3">
+                        {shiftHistory.length === 0 && (
+                            <div className="text-center py-6 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                                <p className="text-gray-400 text-sm">Belum ada data shift yang diinput.</p>
+                            </div>
+                        )}
+
+                        {shiftHistory.map((item, idx) => {
+                            const canEdit = isEditable(item.waktuInput); 
+                            return (
+                                <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-l-4 border-l-indigo-500 relative">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <div className="flex items-center gap-2 text-indigo-700 font-bold mb-1">
+                                                <CalendarCheck className="w-4 h-4"/> 
+                                                <span>{new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric'})}</span>
+                                            </div>
+                                            <p className="text-sm font-semibold text-gray-800">{item.shiftLabel}</p>
+                                            <p className="text-xs text-gray-500 mt-0.5">Jam: {item.shiftValue}</p>
+                                            <p className="text-[10px] text-gray-400 mt-2">Dibuat: {item.waktuInput ? new Date(item.waktuInput).toLocaleString('id-ID') : '-'}</p>
+                                        </div>
+
+                                        {canEdit && (
+                                            <div className="flex flex-col gap-2">
+                                                <button 
+                                                    onClick={() => handleEdit(item)}
+                                                    className="bg-yellow-50 text-yellow-600 p-2 rounded-lg border border-yellow-200 hover:bg-yellow-100 transition"
+                                                    title="Edit Data"
+                                                >
+                                                    <Edit className="w-4 h-4"/>
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDelete(item.uuid)}
+                                                    className="bg-red-50 text-red-600 p-2 rounded-lg border border-red-200 hover:bg-red-100 transition"
+                                                    title="Hapus Data"
+                                                >
+                                                    <Trash2 className="w-4 h-4"/>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {!canEdit && (
+                                        <div className="absolute top-2 right-2">
+                                            <span className="text-[10px] bg-gray-100 text-gray-400 px-2 py-1 rounded border">Locked</span>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -474,9 +660,8 @@ function RemarkScreen({ user, setView }) {
     const [loading, setLoading] = useState(false);
     const [remarks, setRemarks] = useState([]);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
-    // STATE BARU: Filter Status untuk Admin/HRD
     const [statusFilter, setStatusFilter] = useState('All');
-    // FETCH DATA
+
     useEffect(() => {
         const fetchRemarks = async () => {
             try {
@@ -503,6 +688,7 @@ function RemarkScreen({ user, setView }) {
             reader.readAsDataURL(selectedFile);
         }
     };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -514,6 +700,7 @@ function RemarkScreen({ user, setView }) {
                     whatsapp, kategori, pesan, file
                 })
             }).then(r => r.json());
+
             if (res.result === 'success') {
                 alert('Laporan berhasil dikirim ke HRD!');
                 setPesan(''); setWhatsapp(''); setFile(null); setFileName('');
@@ -524,7 +711,6 @@ function RemarkScreen({ user, setView }) {
         } catch (err) { alert('Gagal koneksi.'); } finally { setLoading(false); }
     };
 
-    // HANDLE UPDATE STATUS (ADMIN/HRD)
     const handleMarkDone = async (uuid) => {
         const responseText = window.prompt("Masukkan tanggapan/respon untuk user (Wajib diisi):", "Sudah diproses.");
         if (responseText === null || responseText.trim() === "") return; 
@@ -534,18 +720,20 @@ function RemarkScreen({ user, setView }) {
                 method: 'POST',
                 body: JSON.stringify({ action: 'update_remark_status', uuid, response: responseText })
             }).then(r => r.json());
+
             if (res.result === 'success') {
                 alert("Status diperbarui & Respon terkirim!");
                 setRefreshTrigger(prev => prev + 1);
             } else alert(res.message);
         } catch (e) { alert("Gagal update"); }
     };
-    // LOGIC FILTERING
+
     const filteredRemarks = remarks.filter(item => {
-        if (!isHRDOrAdmin) return true; // Karyawan lihat semua miliknya
+        if (!isHRDOrAdmin) return true;
         if (statusFilter === 'All') return true;
         return item.status === statusFilter;
     });
+
     return (
         <div className="p-4 h-full overflow-y-auto pb-20">
             <div className="flex items-center gap-2 mb-6">
@@ -553,7 +741,6 @@ function RemarkScreen({ user, setView }) {
                 <h2 className="text-xl font-bold ml-2">{isHRDOrAdmin ? 'Respon Laporan Masuk' : 'Lapor & Riwayat'}</h2>
             </div>
 
-            {/* FORM INPUT: HANYA MUNCUL JIKA BUKAN HRD/ADMIN */}
             {!isHRDOrAdmin && (
                 <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6">
                     <h3 className="font-bold text-gray-700 mb-4 flex items-center gap-2"><Edit className="w-4 h-4"/> Buat Laporan Baru</h3>
@@ -593,7 +780,6 @@ function RemarkScreen({ user, setView }) {
                 </div>
             )}
 
-            {/* FITUR BARU: FILTER DROPDOWN UNTUK HRD/ADMIN */}
             {isHRDOrAdmin && (
                 <div className="flex justify-end mb-4">
                     <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm border border-gray-200">
@@ -611,7 +797,6 @@ function RemarkScreen({ user, setView }) {
                 </div>
             )}
 
-            {/* LIST REMARKS */}
             <div>
                 <h3 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
                     <History className="w-4 h-4"/> {isHRDOrAdmin ? `Daftar Laporan (${statusFilter})` : 'Status Laporan Anda'}
@@ -645,7 +830,6 @@ function RemarkScreen({ user, setView }) {
                                 )}
                             </div>
 
-                            {/* TAMPILAN RESPON HRD */}
                             {item.respon && item.respon !== '' && (
                                 <div className="bg-blue-50 p-2 rounded text-xs text-blue-800 border border-blue-200 mt-2">
                                     <div className="flex items-center gap-1 font-bold mb-1">
@@ -689,7 +873,6 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
   const isTimeRequired = !NO_TIME_TYPES.includes(type);
   const isH3Required = H3_REQUIRED_TYPES.includes(type);
   const isIntervalType = !['Hadir', 'Pulang'].includes(type);
-  
   const isShiftWorker = user.role === 'karyawan_shift'; 
   const isClockIn = type === 'Hadir';
   const [selectedShift, setSelectedShift] = useState('');
@@ -700,12 +883,11 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
   const [photo, setPhoto] = useState(null);
   const [location, setLocation] = useState(null);
   const [catatan, setCatatan] = useState('');
-  
   const [intervalData, setIntervalData] = useState({ tglMulai: '', tglSelesai: '', jamMulai: '', jamSelesai: '' });
-  const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [minDateLimit, setMinDateLimit] = useState('');
-  const [activeCutiList, setActiveCutiList] = useState([]); 
+  const [activeCutiList, setActiveCutiList] = useState([]);
 
   useEffect(() => {
     if (isH3Required) {
@@ -780,6 +962,24 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
         return;
     }
 
+    // --- UPDATE VALIDASI MANUAL UNTUK IJIN (H-3) ---
+    // Pastikan user tidak bisa submit jika tanggal lebih tua dari 3 hari lalu
+    if (isH3Required && intervalData.tglMulai) {
+        const dMulai = new Date(intervalData.tglMulai);
+        const dBatas = new Date();
+        dBatas.setDate(dBatas.getDate() - 3); // Mundur 3 hari dari sekarang
+        
+        // Reset Jam ke 00:00:00 agar perbandingan hari akurat
+        dMulai.setHours(0,0,0,0);
+        dBatas.setHours(0,0,0,0);
+
+        if (dMulai < dBatas) {
+             alert(`Pengajuan ${type} GAGAL! Batas waktu pengajuan maksimal 3 hari.`);
+             return;
+        }
+    }
+    // --- END UPDATE VALIDASI ---
+
     if (isEditMode) {
         const entryTime = new Date(editItem.waktu).getTime();
         const now = new Date().getTime();
@@ -835,7 +1035,6 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
     try {
       let shiftJamMulai = '';
       let shiftJamSelesai = '';
-       
       if (selectedShift) {
            const splitJam = selectedShift.split('-');
            if(splitJam.length === 2) {
@@ -870,7 +1069,8 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
         setEditItem(null); 
         setView(isEditMode ? 'history' : 'dashboard');
       } else { alert(data.message); }
-    } catch (e) { alert('Gagal kirim.'); } finally { setIsSubmitting(false); }
+    } catch (e) { alert('Gagal kirim.'); } finally { setIsSubmitting(false);
+    }
   };
   
   const handleBack = () => { setEditItem(null); setView(isEditMode ? 'history' : 'dashboard'); }
@@ -934,11 +1134,11 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
 
                 {type === 'Cuti' && activeCutiList.length > 0 && (
                     <div className="mt-3 bg-white p-2 rounded border border-orange-200">
-                     <p className="text-[10px] font-bold text-orange-600 mb-1 flex items-center gap-1">
+                      <p className="text-[10px] font-bold text-orange-600 mb-1 flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3"/> Tanggal Cuti Aktif (Jangan Double):
                     </p>
                     <ul className="space-y-1">
-                        {activeCutiList.map((c, idx) => (
+                         {activeCutiList.map((c, idx) => (
                         <li key={idx} className="text-[10px] text-gray-600 flex justify-between border-b border-gray-100 pb-1">
                             <span>{new Date(c.tglMulai).toLocaleDateString('id-ID')} - {new Date(c.tglSelesai).toLocaleDateString('id-ID')}</span>
                             <span className={`font-bold ${c.status === 'Approved' ? 'text-green-600' : 'text-yellow-600'}`}>{c.status}</span>
@@ -954,7 +1154,7 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
           <>
             {!isEditMode && (
               <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center relative border-2 border-dashed">
-                {!photo && !cameraActive && <button onClick={startCamera} className="text-blue-600 flex flex-col items-center"><Camera /><span className="text-sm">Buka Kamera (Wajib)</span></button>}
+                  {!photo && !cameraActive && <button onClick={startCamera} className="text-blue-600 flex flex-col items-center"><Camera /><span className="text-sm">Buka Kamera (Wajib)</span></button>}
                 <video ref={videoRef} autoPlay playsInline className={`absolute inset-0 w-full h-full object-cover ${cameraActive && !photo ? 'block' : 'hidden'}`} />
                 <canvas ref={canvasRef} className="hidden" />
                 {photo && <img src={photo} alt="Preview Absensi" className="absolute inset-0 w-full h-full object-cover" />}
@@ -1042,7 +1242,7 @@ function ApprovalScreen({ user, setView }) {
           {list.length === 0 && (
               <div className="text-center py-10 flex flex-col items-center">
                   <CheckCircle className="w-12 h-12 text-gray-300 mb-2" />
-                  <p className="text-gray-400">Tidak ada pengajuan pending saat ini.</p>
+                   <p className="text-gray-400">Tidak ada pengajuan pending saat ini.</p>
               </div>
           )}
           
@@ -1064,7 +1264,7 @@ function ApprovalScreen({ user, setView }) {
                   </div>
                   <div className="text-right">
                       <span className="text-xs font-bold px-2 py-1 bg-orange-100 text-orange-700 rounded border border-orange-200">
-                          {item.tipe}
+                           {item.tipe}
                       </span>
                   </div>
               </div>
@@ -1152,14 +1352,17 @@ function HistoryScreen({ user, setView, setEditItem, masterData }) {
       if (data.result === 'success') setHistory(data.history);
     } catch (e) { alert('Gagal ambil data'); } finally { setLoading(false); }
   };
+
   useEffect(() => { 
       if(canViewAll) fetchUsers();
       // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locationFilter]);
+
   useEffect(() => {
       fetchHistory(); 
       // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUserIds]);
+
   const formatDateIndo = (dateString) => { if (!dateString || dateString === '-') return '-';
     try { const date = new Date(dateString); return date.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
     } catch (e) { return dateString; } };
@@ -1201,6 +1404,7 @@ function HistoryScreen({ user, setView, setEditItem, masterData }) {
     const data = await res.json(); if (data.result === 'success') { alert('Terhapus'); fetchHistory(); } else { alert(data.message);
     } } catch (e) { alert('Gagal hapus'); } };
   const handleEdit = (item) => { setEditItem(item); localStorage.setItem('absenType', item.tipe); setView('form'); };
+  
   const isEditable = (waktuStr, status) => {
     if (status === 'Approved' || status === 'Rejected') return false;
     if (!waktuStr || waktuStr === '-') return false;
@@ -1211,6 +1415,7 @@ function HistoryScreen({ user, setView, setEditItem, masterData }) {
         return diffInHours <= 1;
     } catch (e) { return false; }
   };
+
   const getFilteredHistory = () => { 
     return history.filter(item => { 
       const itemDate = new Date(item.waktu).setHours(0, 0, 0, 0); 
@@ -1229,6 +1434,7 @@ function HistoryScreen({ user, setView, setEditItem, masterData }) {
         setSelectedUserIds([...selectedUserIds, id]);
      }
   };
+
   const selectAllUsers = () => {
      const visibleUsers = allUsers.filter(u => u.nama.toLowerCase().includes(searchUser.toLowerCase()));
      const visibleIds = visibleUsers.map(u => u.id);
@@ -1247,6 +1453,7 @@ function HistoryScreen({ user, setView, setEditItem, masterData }) {
       }
       return true;
   });
+
   const reportData = [...getFilteredHistory()]
     .filter(item => reportStatusFilter === 'All' || item.status === reportStatusFilter)
     .sort((a, b) => a.nama.localeCompare(b.nama));
@@ -1292,7 +1499,7 @@ function HistoryScreen({ user, setView, setEditItem, masterData }) {
                 </div>
 
                 <div className="overflow-auto max-h-[70vh] rounded-lg border border-gray-200 shadow-sm relative">
-                     <table className="w-full text-xs text-left divide-y divide-gray-200 whitespace-nowrap">
+                    <table className="w-full text-xs text-left divide-y divide-gray-200 whitespace-nowrap">
                         <thead className="bg-slate-100 text-slate-700 uppercase font-bold sticky top-0 z-10 shadow-sm">
                             <tr>
                                 <th className="px-4 py-3 text-center w-12 bg-slate-100">No.</th>
@@ -1318,12 +1525,12 @@ function HistoryScreen({ user, setView, setEditItem, masterData }) {
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 text-gray-600">{formatDateTimeFull(item.waktu)}</td>
-                                      <td className="px-4 py-3 text-gray-600">
+                                    <td className="px-4 py-3 text-gray-600">
                                         {item.tglMulai && item.tglMulai !== '-' 
                                             ? `${formatDateShort(item.tglMulai)} - ${formatDateShort(item.tglSelesai)}` 
                                             : (item.jamMulai && item.jamMulai !== '-' ? `${formatTimeOnly(item.jamMulai)} - ${formatTimeOnly(item.jamSelesai)}` : '-')
                                         }
-                                      </td>
+                                    </td>
                                     <td className="px-4 py-3 italic text-gray-500 max-w-[200px] truncate" title={item.catatan}>{item.catatan || '-'}</td>
                                     <td className="px-4 py-3 text-center">
                                         <span className={`inline-block px-2 py-1 text-[10px] font-bold rounded-full border ${getStatusColor(item.status)}`}>
@@ -1364,7 +1571,7 @@ function HistoryScreen({ user, setView, setEditItem, masterData }) {
             </button>
             
             {isFilterExpanded && (
-                <div className="mt-3 bg-slate-700 p-3 rounded-lg max-h-[400px] overflow-y-auto">
+                 <div className="mt-3 bg-slate-700 p-3 rounded-lg max-h-[400px] overflow-y-auto">
                     {isSuperAdmin && (
                         <div className="mb-3 bg-slate-600 p-2 rounded">
                             <label className="text-[10px] text-gray-300 block mb-1">Pilih Lokasi:</label>
@@ -1378,7 +1585,7 @@ function HistoryScreen({ user, setView, setEditItem, masterData }) {
                     <div className="mb-3 relative">
                         <input type="text" placeholder="Cari Nama Karyawan..." value={searchUser} onChange={(e) => setSearchUser(e.target.value)} className="w-full p-2 pl-8 text-sm text-black rounded" />
                         <Search className="w-4 h-4 text-gray-500 absolute left-2.5 top-2.5"/>
-                     </div>
+                    </div>
                     <button onClick={selectAllUsers} className="text-xs font-bold text-blue-300 mb-2 hover:text-white">
                         {selectedUserIds.length > 0 ? 'Reset Pilihan' : 'Pilih Semua (Hasil Pencarian)'}
                     </button>
@@ -1431,11 +1638,11 @@ function HistoryScreen({ user, setView, setEditItem, masterData }) {
                     <p className="text-xs text-gray-500 font-medium">{formatDateIndo(item.waktu)}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    {!isRegularAbsen && (<span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${getStatusColor(item.status)}`}>{item.status || 'Pending'}</span>)}
+                     {!isRegularAbsen && (<span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${getStatusColor(item.status)}`}>{item.status || 'Pending'}</span>)}
                     {isRegularAbsen && (<span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">{formatTimeOnly(item.waktu)}</span>)}
                     <div className="flex gap-1 mt-1">
                       {canEdit && !canViewAll && (
-                        <>
+                         <>
                           <button onClick={() => handleEdit(item)} className="p-1.5 bg-yellow-50 text-yellow-600 rounded border border-yellow-100" title="Edit (Batas 1 Jam)"><Edit className="w-4 h-4"/></button>
                           <button onClick={() => handleDelete(item.uuid)} className="p-1.5 bg-red-50 text-red-600 rounded border border-red-100" title="Hapus (Batas 1 Jam)"><Trash2 className="w-4 h-4"/></button>
                         </>
@@ -1521,8 +1728,7 @@ function AdminPanel({ user, setView, masterData }) {
         alert('Data Ditambah!');
         setMasterInput({ kategori: 'Menu', value: '', label: '' }); 
       } else alert(res.message); 
-    } catch(e) { alert('Error'); } finally { setLoading(false);
-    } 
+    } catch(e) { alert('Error'); } finally { setLoading(false); } 
   };
 
   return (
@@ -1543,7 +1749,7 @@ function AdminPanel({ user, setView, masterData }) {
         <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
           <form onSubmit={handleAddUser} className="space-y-4">
             <div className="grid grid-cols-2 gap-2">
-              <input required type="text" className="w-full p-2 border rounded" value={userData.nama} onChange={e => setUserData({...userData, nama: e.target.value})} placeholder="Nama Karyawan" />
+               <input required type="text" className="w-full p-2 border rounded" value={userData.nama} onChange={e => setUserData({...userData, nama: e.target.value})} placeholder="Nama Karyawan" />
               <input required type="email" className="w-full p-2 border rounded" value={userData.email} onChange={e => setUserData({...userData, email: e.target.value})} placeholder="Email" />
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -1583,7 +1789,7 @@ function AdminPanel({ user, setView, masterData }) {
                  <div>
                     <label className="text-xs text-gray-500">Role</label>
                     <select className="w-full p-2 border rounded" value={userData.role} onChange={e => setUserData({...userData, role: e.target.value})}>
-                        {masterData.roles.map((r, i) => <option key={i} value={r.value}>{r.label}</option>)}
+                      {masterData.roles.map((r, i) => <option key={i} value={r.value}>{r.label}</option>)}
                     </select>
                  </div>
             </div>
@@ -1683,7 +1889,7 @@ function LoginScreen({ onLogin }) {
           <h2 className="text-2xl font-bold text-slate-800 mt-5 tracking-tight">e-Absensi Online</h2>
           <p className="text-slate-500 text-xs mt-1 text-center px-4">
             Silakan Anda masuk ke sistem.
-          </p>
+        </p>
         </div>
 
         {/* Form Login */}
@@ -1861,7 +2067,7 @@ function DbAbsenScreen({ user, setView }) {
                         </div>
                         <div className="text-right">
                              <span className={`text-xs font-bold px-2 py-1 rounded ${getSymbolColor(item.symbol)}`}>
-                                 Kode: {item.symbol || '-'}
+                                  Kode: {item.symbol || '-'}
                              </span>
                         </div>
                     </div>
@@ -1877,7 +2083,7 @@ function DbAbsenScreen({ user, setView }) {
                         </div>
                         <div>
                             <p className="text-[10px] text-gray-400">Jam Kerja</p>
-                            <p className="font-medium">{item.jamKerja}</p>
+                             <p className="font-medium">{item.jamKerja}</p>
                         </div>
                         <div>
                             <p className="text-[10px] text-gray-400">Telat</p>
@@ -1885,7 +2091,7 @@ function DbAbsenScreen({ user, setView }) {
                             {formatTimeOnly(item.telat)} 
                             </p>
                       </div>
-                    </div>
+                   </div>
 
                     {item.waktuScan && (
                         <div className="mt-2 bg-gray-50 p-2 rounded border border-gray-100">
