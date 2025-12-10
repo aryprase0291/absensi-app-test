@@ -12,7 +12,7 @@ import {
 
 // --- KONFIGURASI URL ---
 // Ganti dengan URL Web App Google Script Anda yang terbaru
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR8UgXwyTJmAUuNGBT6jlVfXhTtEswC4j06NIZtYOD_CQgoqruDSKFIaAVwRzNo04k_w/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzAzwhN4JjWEAL2P_pzoSK15a-NFOailbwXrynD5kZ3FXLR9SBgBA4UTgs8fdEW_6_euA/exec';
 
 const ICON_MAP = {
   'Hadir': CheckCircle, 'Pulang': LogOut, 'Ijin': FileText, 'Sakit': AlertTriangle, 'Lembur': Clock, 'Dinas': Briefcase, 'Cuti': Calendar
@@ -751,7 +751,7 @@ function RemarkScreen({ user, setView }) {
                             <label className="text-xs font-bold text-gray-700 block mb-1">No. WhatsApp *</label>
                             <div className="relative">
                                 <Smartphone className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
-                                <input type="tel" required className="w-full p-2.5 pl-10 border rounded-lg text-sm" placeholder="08xxxxxxxx" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} />
+                                <input type="tel" required className="w-full p-2.5 pl-10 border rounded-lg text-sm" placeholder="628xxxxxxxx" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} />
                             </div>
                         </div>
                         <div>
