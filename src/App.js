@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 // Import Icons
+// PERBAIKAN: Menghapus 'Printer' dari import karena tidak digunakan
 import { 
   Camera, MapPin, CheckCircle, LogOut, User, Activity, Clock, Key, Star, 
   Calendar, Settings, History, Trash2, Edit, CreditCard, PieChart, Building, 
   Briefcase, FileText, AlertTriangle, X, 
-  File as FileIcon, Filter, CheckSquare, Users, Eye, Printer,
+  File as FileIcon, Filter, CheckSquare, Users, Eye, 
   ScanFace, Fingerprint, Smartphone, ChevronLeft, ChevronDown, ChevronUp, Search, 
   MessageSquare, Upload, Check, MessageCircle, Info, CalendarCheck
 } from 'lucide-react';
@@ -276,7 +277,7 @@ function Dashboard({ user, setUser, setView, masterData }) {
         )} 
       </div> 
 
-      {/* --- MENU KHUSUS KARYAWAN SHIFT --- */}
+      {/* MENU KHUSUS KARYAWAN SHIFT --- */}
       {isShiftWorker && (
          <div className="mb-6">
             <h3 className="font-bold text-gray-700 mb-2 px-1 flex items-center gap-2">
@@ -305,7 +306,7 @@ function Dashboard({ user, setUser, setView, masterData }) {
 
       <h3 className="font-bold text-gray-700 mb-3 px-1 flex items-center gap-2">
           <div className="w-1 h-5 bg-blue-600 rounded-full"></div>
-         Menu Absensi
+          Menu Absensi
       </h3> 
 
       <div className="grid grid-cols-2 gap-4"> 
@@ -415,7 +416,8 @@ function ShiftScheduleScreen({ user, setView, masterData }) {
 
     // FUNGSI: Handle Klik Hapus
     const handleDelete = async (uuid) => {
-        if(!confirm("Yakin ingin menghapus jadwal shift ini?")) return;
+        // PERBAIKAN: Menambahkan 'window.' sebelum confirm
+        if(!window.confirm("Yakin ingin menghapus jadwal shift ini?")) return;
         setLoading(true);
         try {
             const res = await fetch(SCRIPT_URL, {
@@ -1264,7 +1266,7 @@ function ApprovalScreen({ user, setView }) {
                   </div>
                   <div className="text-right">
                       <span className="text-xs font-bold px-2 py-1 bg-orange-100 text-orange-700 rounded border border-orange-200">
-                           {item.tipe}
+                            {item.tipe}
                       </span>
                   </div>
               </div>
@@ -1638,11 +1640,11 @@ function HistoryScreen({ user, setView, setEditItem, masterData }) {
                     <p className="text-xs text-gray-500 font-medium">{formatDateIndo(item.waktu)}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                     {!isRegularAbsen && (<span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${getStatusColor(item.status)}`}>{item.status || 'Pending'}</span>)}
-                    {isRegularAbsen && (<span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">{formatTimeOnly(item.waktu)}</span>)}
+                      {!isRegularAbsen && (<span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${getStatusColor(item.status)}`}>{item.status || 'Pending'}</span>)}
+                     {isRegularAbsen && (<span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">{formatTimeOnly(item.waktu)}</span>)}
                     <div className="flex gap-1 mt-1">
                       {canEdit && !canViewAll && (
-                         <>
+                        <>
                           <button onClick={() => handleEdit(item)} className="p-1.5 bg-yellow-50 text-yellow-600 rounded border border-yellow-100" title="Edit (Batas 1 Jam)"><Edit className="w-4 h-4"/></button>
                           <button onClick={() => handleDelete(item.uuid)} className="p-1.5 bg-red-50 text-red-600 rounded border border-red-100" title="Hapus (Batas 1 Jam)"><Trash2 className="w-4 h-4"/></button>
                         </>
@@ -2091,7 +2093,7 @@ function DbAbsenScreen({ user, setView }) {
                             {formatTimeOnly(item.telat)} 
                             </p>
                       </div>
-                   </div>
+                    </div>
 
                     {item.waktuScan && (
                         <div className="mt-2 bg-gray-50 p-2 rounded border border-gray-100">
