@@ -7,12 +7,18 @@ import {
   Briefcase, FileText, AlertTriangle, X, 
   File as FileIcon, Filter, CheckSquare, Users, Eye, 
   ScanFace, Fingerprint, Smartphone, ChevronLeft, ChevronDown, ChevronUp, Search, 
-  MessageSquare, Upload, Check, MessageCircle, Info, CalendarCheck
+  MessageSquare, Upload, Check, MessageCircle, Info, CalendarCheck,
+  Venus
 } from 'lucide-react';
+
+import { SCRIPT_URL } from './config/constants';
+import { TIMEOUT_DURATION } from './config/constants';
+import BackButton from './components/BackButton';
 
 // --- KONFIGURASI URL ---
 // Ganti dengan URL Web App Google Script Anda yang terbaru
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzAzwhN4JjWEAL2P_pzoSK15a-NFOailbwXrynD5kZ3FXLR9SBgBA4UTgs8fdEW_6_euA/exec';
+// const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzAzwhN4JjWEAL2P_pzoSK15a-NFOailbwXrynD5kZ3FXLR9SBgBA4UTgs8fdEW_6_euA/exec';
+
 
 const ICON_MAP = {
   'Hadir': CheckCircle, 'Pulang': LogOut, 'Ijin': FileText, 'Sakit': AlertTriangle, 'Lembur': Clock, 'Dinas': Briefcase, 'Cuti': Calendar
@@ -22,22 +28,24 @@ const COLOR_MAP = {
   'Hadir': 'bg-green-500', 'Pulang': 'bg-red-500', 'Ijin': 'bg-yellow-500', 'Sakit': 'bg-orange-500', 'Lembur': 'bg-purple-500', 'Dinas': 'bg-indigo-500', 'Cuti': 'bg-pink-500'
 };
 
-const TIMEOUT_DURATION = 5 * 60 * 1000; 
+// const TIMEOUT_DURATION = 5 * 60 * 1000; 
 
 // --- COMPONENT HELPER: TOMBOL BACK ---
-function BackButton({ onClick }) {
-  return (
-    <button 
-      onClick={onClick} 
-      className="group flex items-center gap-2 pl-1 pr-4 py-1.5 bg-white text-slate-600 rounded-full shadow-sm border border-slate-200 hover:bg-white hover:text-blue-600 hover:border-blue-200 hover:shadow-md transition-all duration-300 active:scale-95"
-    >
-      <div className="bg-slate-100 p-1.5 rounded-full group-hover:bg-blue-50 transition-colors">
-        <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-      </div>
-      <span className="text-sm font-bold">Kembali</span>
-    </button>
-  );
-}
+// function BackButton({ onClick }) {
+//   return (
+//     <button 
+//       onClick={onClick} 
+//       className="group flex items-center gap-2 pl-1 pr-4 py-1.5 bg-white text-slate-600 rounded-full shadow-sm border border-slate-200 hover:bg-white hover:text-blue-600 hover:border-blue-200 hover:shadow-md transition-all duration-300 active:scale-95"
+//     >
+//       <div className="bg-slate-100 p-1.5 rounded-full group-hover:bg-blue-50 transition-colors">
+//         <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+//       </div>
+//       <span className="text-sm font-bold">Kembali</span>
+//     </button>
+//   );
+// }
+
+// {/* <BackButton onClick={() => console.log("Kembali ditekan")} /> */}
 
 // --- MAIN APP COMPONENT ---
 export default function AppAbsensi() {
@@ -1998,10 +2006,12 @@ function ChangePasswordScreen({ user, setView }) {
 }
 
 // --- 9. DB ABSEN SCREEN (DATA MESIN) ---
+
 function DbAbsenScreen({ user, setView }) {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // ... (bagian useEffect fetch data tetap sama, tidak perlu diubah) ...
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -2011,7 +2021,7 @@ function DbAbsenScreen({ user, setView }) {
             body: JSON.stringify({ 
                 action: 'get_db_absen', 
                 userId: user.id,
-                noPayroll: user.noPayroll // Kirim No Payroll user
+                noPayroll: user.noPayroll 
             }) 
         });
         const data = await res.json();
@@ -2030,14 +2040,33 @@ function DbAbsenScreen({ user, setView }) {
     
     if (user) fetchData();
   }, [user]);
-  // Helper warna untuk symbol
+
+  // Helper warna untuk symbol (tetap sama)
   const getSymbolColor = (sym) => {
       if(!sym) return 'bg-gray-100 text-gray-600';
       const s = sym.toUpperCase();
-      if(s === 'H' || s === 'A') return 'bg-green-100 text-green-700'; // Hadir
-      if(s === 'T') return 'bg-red-100 text-red-700'; // Telat
+      if(s === 'H' || s === 'A') return 'bg-green-100 text-green-700'; 
+      if(s === 'T') return 'bg-red-100 text-red-700'; 
       return 'bg-blue-100 text-blue-700';
   };
+
+  // --- [BARU] FUNGSI TERJEMAH HARI ---
+  const translateDay = (dayName) => {
+      if (!dayName) return '-';
+      const map = {
+          'SUN': 'MINGGU',
+          'MON': 'SENIN',
+          'TUE': 'SELASA',
+          'WED': 'RABU',
+          'THU': 'KAMIS',
+          'FRI': 'JUMAT',
+          'SAT': 'SABTU'
+      };
+      // Mengambil 3 huruf pertama dan uppercase untuk dicocokkan
+      const key = String(dayName).toUpperCase().substring(0, 3);
+      return map[key] || dayName;
+  };
+
   return (
     <div className="p-4 h-full overflow-y-auto pb-20">
       <div className="flex items-center gap-2 mb-4">
@@ -2047,7 +2076,7 @@ function DbAbsenScreen({ user, setView }) {
 
       <div className="bg-indigo-50 border border-indigo-200 p-3 rounded-lg mb-4 text-xs text-indigo-800">
         <p className="font-bold flex items-center gap-1"><Info className="w-3 h-3"/> Informasi:</p>
-        <p>Data di bawah ini sinkron langsung dari Mesin Fingerprint - <strong>{user.noPayroll}</strong>.</p>
+        <p>Data ini sinkron langsung dari Mesin Fingerprint ID - <strong>{user.noPayroll}</strong>.</p>
       </div>
 
       {loading ? (
@@ -2056,57 +2085,92 @@ function DbAbsenScreen({ user, setView }) {
         <div className="space-y-3">
             {list.length === 0 && (
                 <div className="text-center py-10 text-gray-400">
-                    <p>Tidak ada data ditemukan untuk PAYROLL {user.noPayroll}.</p>
+                    <p>Tidak ada data ditemukan untuk ID {user.noPayroll}.</p>
                 </div>
             )}
 
-            {list.map((item, idx) => (
-                <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                    <div className="flex justify-between items-start border-b border-gray-100 pb-2 mb-2">
-                        <div>
-                            <p className="text-xs text-gray-500 font-bold uppercase">{item.week}</p>
-                            <h4 className="font-bold text-gray-800">{item.tanggal}</h4>
-                        </div>
-                        <div className="text-right">
-                             <span className={`text-xs font-bold px-2 py-1 rounded ${getSymbolColor(item.symbol)}`}>
-                                  Kode: {item.symbol || '-'}
-                             </span>
-                        </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-y-2 text-sm">
-                        <div>
-                            <p className="text-[10px] text-gray-400">Jam Masuk</p>
-                            <p className="font-medium font-bold text-blue-600">{formatTimeOnly(item.masuk)}</p>
-                        </div>
-                        <div>
-                            <p className="text-[10px] text-gray-400">Jam Pulang</p>
-                            <p className="font-medium font-bold text-blue-600">{formatTimeOnly(item.pulang)}</p>
-                        </div>
-                        <div>
-                            <p className="text-[10px] text-gray-400">Jam Kerja</p>
-                             <p className="font-medium">{item.jamKerja}</p>
-                        </div>
-                        <div>
-                            <p className="text-[10px] text-gray-400">Telat</p>
-                            <p className={`font-medium ${item.telat ? 'text-red-600' : 'text-gray-600'}`}>
-                            {formatTimeOnly(item.telat)} 
-                            </p>
-                      </div>
-                    </div>
+            {list.map((item, idx) => {
+                // 1. KITA DEFINISIKAN KAMUS KETERANGAN DI SINI (Di dalam kurung kurawal)
+                const keteranganMap = {
+                    'T': 'Telat',
+                    'O': 'Off',
+                    'CB': 'Cuti Bersama',
+                    'H': 'Hadir',
+                    'PC': 'Pulang Cepat',
+                    'Si': 'Tdk Absen Masuk',
+                    'I': 'Ijin',
+                    'So': 'Tdk Absen Pulang',
+                    'A': 'Alpa',
+                    'TPC': 'Telat, Pulang Cepat',
+                    'TSo': 'Telat, Tdk Absen Pulang',
+                    'TSi': 'Telat, Tdk Absen Masuk',
+                    'AC': 'Alpa Lebih Cuti',
+                    'C': 'Cuti',
+                    'S': 'Sakit',
+                    'SiPC': 'Tdk Absen Masuk, Pulang Cepat',
+                    'DL': 'Dinas Luar',
+                    'EO': 'Extra Ordinary',
+                    'NF': 'Tidak Absen Mesin',
+                    'SiSo': 'Tdk Absen Masuk'
+                };
 
-                    {item.waktuScan && (
-                        <div className="mt-2 bg-gray-50 p-2 rounded border border-gray-100">
-                            <p className="text-[10px] text-gray-400 mb-1 flex items-center gap-1">
-                                <ScanFace className="w-3 h-3"/> Log Waktu Scan:
-                            </p>
-                            <p className="text-[10px] font-mono text-gray-600 break-words leading-tight">
-                                {String(item.waktuScan).split(' ').map(t => formatTimeOnly(t)).join(' ')}
-                            </p>
+                // Ambil teks keterangan berdasarkan symbol, jika tidak ada, kosongkan
+                const textKeterangan = keteranganMap[item.symbol] ? `(${keteranganMap[item.symbol]})` : '';
+
+                // 2. BARU KITA RETURN TAMPILANNYA
+                return (
+                    <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                        <div className="flex justify-between items-start border-b border-gray-100 pb-2 mb-2">
+                            <div>
+                                {/* Memanggil fungsi translateDay yang sudah Anda buat sebelumnya */}
+                                <p className="text-xs text-gray-500 font-bold uppercase">
+                                    {translateDay(item.week)}
+                                </p>
+                                <h4 className="font-bold text-gray-800">{item.tanggal}</h4>
+                            </div>
+                            <div className="text-right">
+                                 {/* TAMPILKAN KODE + KETERANGAN */}
+                                 <span className={`text-xs font-bold px-2 py-1 rounded ${getSymbolColor(item.symbol)} block`}>
+                                      {item.symbol || '-'} <br/>
+                                      <span className="text-[10px] opacity-80 font-normal">{textKeterangan}</span>
+                                 </span>
+                            </div>
                         </div>
-                    )}
-                </div>
-            ))}
+                        
+                        <div className="grid grid-cols-2 gap-y-2 text-sm">
+                            <div>
+                                <p className="text-[10px] text-gray-400">Jam Masuk</p>
+                                <p className="font-medium font-bold text-blue-600">{formatTimeOnly(item.masuk)}</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-gray-400">Jam Pulang</p>
+                                <p className="font-medium font-bold text-blue-600">{formatTimeOnly(item.pulang)}</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-gray-400">Jam Kerja</p>
+                                 <p className="font-medium">{item.jamKerja}</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-gray-400">Telat</p>
+                                <p className={`font-medium ${item.telat ? 'text-red-600' : 'text-gray-600'}`}>
+                                {formatTimeOnly(item.telat)} 
+                                </p>
+                          </div>
+                        </div>
+    
+                        {item.waktuScan && (
+                            <div className="mt-2 bg-gray-50 p-2 rounded border border-gray-100">
+                                <p className="text-[10px] text-gray-400 mb-1 flex items-center gap-1">
+                                    <ScanFace className="w-3 h-3"/> Log Waktu Scan:
+                                </p>
+                                <p className="text-[10px] font-mono text-gray-600 break-words leading-tight">
+                                    {String(item.waktuScan).split(' ').map(t => formatTimeOnly(t)).join(' ')}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
         </div>
       )}
     </div>
