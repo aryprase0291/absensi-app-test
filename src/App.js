@@ -738,8 +738,34 @@ function RemarkScreen({ user, setView }) {
         } catch (e) { alert("Gagal update"); }
     };
 
+
+
+    // --- LOGIC FILTERING MULTI-LOKASI ---
     const filteredRemarks = remarks.filter(item => {
+        // 1. Jika User Biasa (Bukan HRD/Admin), tampilkan semua (karena backend sdh filter data dia sendiri)
         if (!isHRDOrAdmin) return true;
+
+        // 2. Filter Berdasarkan Lokasi Admin (MULTI LOKASI SUPPORT)
+        // Jika user.lokasi ada isinya
+        if (user.lokasi) {
+            // Pecah string lokasi user menjadi array. Contoh: "Jakarta, Surabaya" -> ['Jakarta', 'Surabaya']
+            // .map(l => l.trim()) berguna untuk membuang spasi di depan/belakang koma
+            const allowedLocations = user.lokasi.split(',').map(l => l.trim());
+
+            // Jika User punya akses 'All', lewati filter ini (bisa lihat semua)
+            if (allowedLocations.includes('All')) {
+                // Lanjut ke filter status...
+            } 
+            // Cek apakah lokasi pelapor ada di dalam daftar akses user
+            else {
+                const laporanLokasi = item.lokasi || ''; // Antisipasi jika lokasi pelapor kosong
+                if (!allowedLocations.includes(laporanLokasi)) {
+                    return false; // Sembunyikan jika tidak cocok
+                }
+            }
+        }
+
+        // 3. Filter Status (Existing)
         if (statusFilter === 'All') return true;
         return item.status === statusFilter;
     });
@@ -1679,17 +1705,50 @@ function HistoryScreen({ user, setView, setEditItem, masterData }) {
 }
 
 // --- 6. ADMIN PANEL (DIPERBAIKI: TAMBAH MASTER SHIFT) ---
+// 
 function AdminPanel({ user, setView, masterData }) {
   const [activeTab, setActiveTab] = useState('user');
   const [loading, setLoading] = useState(false);
+  
+  // State User Data
   const [userData, setUserData] = useState({ 
     username: '', password: '', nama: '', email: '', 
     divisi: 'Staff', role: 'karyawan', akses: [], 
     noPayroll: '', sisaCuti: '', perusahaan: '', 
     statusKaryawan: '', emailAtasan: '',
-    lokasi: 'Surabaya' 
+    lokasi: 'Surabaya' // Default awal
   });
+
   const [masterInput, setMasterInput] = useState({ kategori: 'Menu', value: '', label: '' });
+
+  // --- [BARU] DAFTAR LOKASI MASTER ---
+  // Sesuaikan daftar ini dengan kebutuhan perusahaan Anda
+  const LIST_LOKASI = [
+      'Surabaya', 'Jakarta', 'Semarang', 'Cilegon', 'Citeureup', 
+      'Makassar', 'Balikpapan', 'Medan', 'All'
+  ];
+
+  // --- [BARU] HANDLER UNTUK LOKASI (MULTI SELECT) ---
+  const handleLocationChange = (loc) => {
+     // Ambil lokasi saat ini, pisahkan dengan koma menjadi array
+     let currentLocs = userData.lokasi ? userData.lokasi.split(',').map(l=>l.trim()).filter(l=>l!=='') : [];
+     
+     if (currentLocs.includes(loc)) {
+         // Jika diklik dan sudah ada -> Hapus (Uncheck)
+         currentLocs = currentLocs.filter(l => l !== loc);
+     } else {
+         // Jika diklik dan belum ada -> Tambah (Check)
+         if(loc === 'All') {
+             currentLocs = ['All']; // Jika pilih All, reset yang lain jadi All saja
+         } else {
+            currentLocs = currentLocs.filter(l => l !== 'All'); // Jika pilih kota, hapus 'All'
+            currentLocs.push(loc);
+         }
+     }
+     // Gabungkan kembali menjadi string dengan pemisah koma
+     setUserData({ ...userData, lokasi: currentLocs.join(', ') });
+  };
+
   const handleCheckboxChange = (val) => { 
     setUserData(prev => { 
       const current = prev.akses; 
@@ -1722,6 +1781,7 @@ function AdminPanel({ user, setView, masterData }) {
       }
     } catch(e) { alert('Error koneksi server'); } finally { setLoading(false); }
   };
+
   const handleAddMaster = async (e) => { 
     e.preventDefault(); 
     setLoading(true);
@@ -1779,22 +1839,44 @@ function AdminPanel({ user, setView, masterData }) {
               <input type="text" className="w-full p-2 border rounded" value={userData.noPayroll} onChange={e => setUserData({...userData, noPayroll: e.target.value})} placeholder="No Payroll" />
               <input type="number" className="w-full p-2 border rounded" value={userData.sisaCuti} onChange={e => setUserData({...userData, sisaCuti: e.target.value})} placeholder="Sisa Cuti Awal" />
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            
+            {/* --- UPDATE: LAYOUT INPUT --- */}
+            <div className="grid grid-cols-1 gap-4">
               <div>
-                <label className="text-xs text-gray-500">Divisi</label>
+                <label className="text-xs text-gray-500 block mb-1">Divisi</label>
                 <select className="w-full p-2 border rounded" value={userData.divisi} onChange={e => setUserData({...userData, divisi: e.target.value})}>
                   {masterData.divisions.map((d, i) => <option key={i} value={d.value}>{d.label}</option>)}
                   {masterData.divisions.length === 0 && <option>Staff</option>}
                 </select>
               </div>
-              <div>
-                <label className="text-xs text-gray-500">Lokasi Penempatan</label>
-                <select className="w-full p-2 border rounded" value={userData.lokasi} onChange={e => setUserData({...userData, lokasi: e.target.value})}>
-                  <option value="Surabaya">Surabaya</option>
-                  <option value="Jakarta">Jakarta</option>
-                </select>
+
+              {/* --- UPDATE: GANTI INPUT LOKASI JADI CHECKBOX --- */}
+              <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                <label className="text-xs font-bold text-gray-700 block mb-2">Akses Lokasi (Bisa Pilih Lebih dari 1)</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {LIST_LOKASI.map((loc) => {
+                    // Logic cek apakah checkbox dicentang
+                    const isChecked = userData.lokasi && userData.lokasi.split(',').map(l=>l.trim()).includes(loc);
+                    return (
+                        <label key={loc} className="flex items-center gap-2 text-xs cursor-pointer bg-white p-2 rounded border hover:bg-blue-50 transition-colors">
+                            <input 
+                                type="checkbox" 
+                                checked={!!isChecked} 
+                                onChange={() => handleLocationChange(loc)}
+                                className="w-4 h-4 text-blue-600 rounded" 
+                            />
+                            {loc}
+                        </label>
+                    );
+                  })}
+                </div>
+                <p className="text-[10px] text-gray-400 mt-2 bg-white px-2 py-1 border border-dashed rounded">
+                    Data tersimpan: <strong>{userData.lokasi || '-'}</strong>
+                </p>
               </div>
+              {/* --- END UPDATE LOKASI --- */}
             </div>
+
              <div className="grid grid-cols-1 gap-2 mt-2">
                  <div>
                     <label className="text-xs text-gray-500">Role</label>
@@ -1828,7 +1910,6 @@ function AdminPanel({ user, setView, masterData }) {
                 <option value="Menu">Menu Absensi Baru</option>
                 <option value="Role">Role User Baru</option>
                 <option value="Divisi">Divisi Baru</option>
-                {/* [UPDATE] Opsi Master Shift */}
                 <option value="Shift">Jam Kerja Shift</option>
               </select>
             </div>
@@ -1843,7 +1924,6 @@ function AdminPanel({ user, setView, masterData }) {
     </div>
   );
 }
-
 // --- 7. LOGIN SCREEN (TIDAK BERUBAH) ---
 function LoginScreen({ onLogin }) { 
   const [username, setUsername] = useState('');
