@@ -894,43 +894,59 @@ function RemarkScreen({ user, setView }) {
     );
 }
 
-// --- 3. ATTENDANCE FORM (TETAP SEPERTI REQUEST SEBELUMNYA) ---
+// --- 3. ATTENDANCE FORM (UPDATED: SAKIT + UPLOAD + BACK CAMERA) ---
 // function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterData }) {
 //   const type = localStorage.getItem('absenType') || 'Hadir';
 //   const isEditMode = !!editItem;
 
+//   // KONFIGURASI TIPE ABSEN
 //   const PHOTO_REQUIRED_TYPES = ['Hadir', 'Pulang', 'Dinas', 'Sakit'];
 //   const NO_GPS_TYPES = ['Ijin', 'Cuti', 'Dinas Luar', 'Sakit', 'Cuti EO', 'Tukar Shift'];
 //   const NO_TIME_TYPES = ['Cuti', 'Dinas Luar', 'Sakit', 'Cuti EO']; 
 //   const H3_REQUIRED_TYPES = ['Ijin', 'Tukar Shift']; 
+//   // Sakit butuh upload file tambahan
+//   const UPLOAD_ALLOWED_TYPES = ['Sakit', 'Ijin', 'Dinas Luar']; 
 
 //   const isPhotoRequired = PHOTO_REQUIRED_TYPES.includes(type);
 //   const isGpsRequired = !NO_GPS_TYPES.includes(type);
 //   const isTimeRequired = !NO_TIME_TYPES.includes(type);
 //   const isH3Required = H3_REQUIRED_TYPES.includes(type);
+//   const isUploadAllowed = UPLOAD_ALLOWED_TYPES.includes(type);
 //   const isIntervalType = !['Hadir', 'Pulang'].includes(type);
 //   const isShiftWorker = user.role === 'karyawan_shift'; 
 //   const isClockIn = type === 'Hadir';
+
 //   const [selectedShift, setSelectedShift] = useState('');
 //   const availableShifts = masterData?.shifts || [];
 
+//   // CAMERA REFS & STATE
 //   const videoRef = useRef(null);
 //   const canvasRef = useRef(null);
 //   const [photo, setPhoto] = useState(null);
+//   const [cameraActive, setCameraActive] = useState(false);
+//   // Default: Sakit pakai kamera belakang, lainnya depan
+//   const [facingMode, setFacingMode] = useState(type === 'Sakit' ? 'environment' : 'user');
+
+//   // FORM DATA STATE
 //   const [location, setLocation] = useState(null);
 //   const [catatan, setCatatan] = useState('');
 //   const [intervalData, setIntervalData] = useState({ tglMulai: '', tglSelesai: '', jamMulai: '', jamSelesai: '' });
+  
+//   // UPLOAD FILE STATE
+//   const [fileLampiran, setFileLampiran] = useState(null); // Base64 string
+//   const [fileName, setFileName] = useState('');
+//   const [fileMime, setFileMime] = useState('');
+
 //   const [isSubmitting, setIsSubmitting] = useState(false);
-//   const [cameraActive, setCameraActive] = useState(false);
 //   const [minDateLimit, setMinDateLimit] = useState('');
 //   const [activeCutiList, setActiveCutiList] = useState([]);
 
+//   // --- INIT DATA ---
 //   useEffect(() => {
 //     if (isH3Required) {
 //       const d = new Date();
 //       d.setDate(d.getDate() - 3); 
-//       const minDateStr = d.toISOString().split('T')[0];
-//       setMinDateLimit(minDateStr);
+//       setMinDateLimit(d.toISOString().split('T')[0]);
 //     } else {
 //       setMinDateLimit('');
 //     }
@@ -947,6 +963,8 @@ function RemarkScreen({ user, setView }) {
 //         jamSelesai: editItem.jamSelesai !== '-' ? editItem.jamSelesai : '' 
 //       });
 //       setPhoto(editItem.foto); 
+//       // Note: File lampiran lama tidak diload ulang ke input file karena keamanan browser, 
+//       // tapi backend harus handle agar tidak hilang jika tidak diupdate.
 //     }
 //   }, [editItem, isEditMode]);
 
@@ -959,31 +977,86 @@ function RemarkScreen({ user, setView }) {
 //     }
 //   }, [isGpsRequired, isEditMode]);
 
-//   const startCamera = async () => { try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-//     if (videoRef.current) { videoRef.current.srcObject = stream; setCameraActive(true); } } catch (err) { alert("Gagal akses kamera."); } };
+//   // --- CAMERA LOGIC (UPDATED) ---
+//   const stopCamera = () => {
+//       if (videoRef.current && videoRef.current.srcObject) {
+//           const tracks = videoRef.current.srcObject.getTracks();
+//           tracks.forEach(track => track.stop());
+//           videoRef.current.srcObject = null;
+//       }
+//       setCameraActive(false);
+//   };
 
-//   const takePhoto = () => { const video = videoRef.current; const canvas = canvasRef.current;
-//     if (video && canvas) { canvas.width = video.videoWidth; canvas.height = video.videoHeight; canvas.getContext('2d').drawImage(video, 0, 0); setPhoto(canvas.toDataURL('image/jpeg')); video.srcObject.getTracks().forEach(track => track.stop()); setCameraActive(false);
-//     } };
+//   const startCamera = async () => { 
+//       stopCamera(); // Stop dulu jika ada yg jalan
+//       try { 
+//           const stream = await navigator.mediaDevices.getUserMedia({ 
+//               video: { facingMode: facingMode } 
+//           });
+//           if (videoRef.current) { 
+//               videoRef.current.srcObject = stream; 
+//               setCameraActive(true); 
+//           } 
+//       } catch (err) { 
+//           alert("Gagal akses kamera. Pastikan izin diberikan."); 
+//       } 
+//   };
+
+//   // Efek ganti kamera saat tombol switch ditekan
+//   useEffect(() => {
+//       if (cameraActive) {
+//           startCamera();
+//       }
+//       // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [facingMode]);
+
+//   const toggleCamera = () => {
+//       setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+//   };
+
+//   const takePhoto = () => { 
+//       const video = videoRef.current; 
+//       const canvas = canvasRef.current;
+//       if (video && canvas) { 
+//           canvas.width = video.videoWidth; 
+//           canvas.height = video.videoHeight; 
+//           canvas.getContext('2d').drawImage(video, 0, 0); 
+//           setPhoto(canvas.toDataURL('image/jpeg', 0.8)); // Kompresi 0.8
+//           stopCamera();
+//       } 
+//   };
   
+//   // --- FILE UPLOAD LOGIC ---
+//   const handleFileChange = (e) => {
+//       const file = e.target.files[0];
+//       if (file) {
+//           if (file.size > 5 * 1024 * 1024) { // Limit 5MB
+//               alert("Ukuran file terlalu besar (Max 5MB)");
+//               return;
+//           }
+//           setFileName(file.name);
+//           setFileMime(file.type);
+          
+//           const reader = new FileReader();
+//           reader.onloadend = () => {
+//               setFileLampiran(reader.result); // Base64 Result
+//           };
+//           reader.readAsDataURL(file);
+//       }
+//   };
+
+//   // --- CEK CUTI ---
 //   useEffect(() => {
 //     if (type === 'Cuti' && !isEditMode) {
 //       const fetchCutiHistory = async () => {
 //         try {
 //           const res = await fetch(SCRIPT_URL, { 
 //             method: 'POST', 
-//             body: JSON.stringify({ 
-//               action: 'get_history', 
-//               userId: user.id,
-//               requestorLokasi: 'All' 
-//             }) 
+//             body: JSON.stringify({ action: 'get_history', userId: user.id, requestorLokasi: 'All' }) 
 //           });
 //           const data = await res.json();
 //           if (data.result === 'success') {
-//             const cutiList = data.history.filter(item => 
-//               item.tipe === 'Cuti' && item.status !== 'Rejected' && 
-//               item.tglMulai && item.tglMulai !== '-'
-//             );
+//             const cutiList = data.history.filter(item => item.tipe === 'Cuti' && item.status !== 'Rejected' && item.tglMulai);
 //             setActiveCutiList(cutiList);
 //           }
 //         } catch (e) { console.error("Gagal load history cuti"); }
@@ -992,81 +1065,58 @@ function RemarkScreen({ user, setView }) {
 //     }
 //   }, [type, user.id, isEditMode]);
 
+//   // --- SUBMIT ---
 //   const handleSubmit = async () => {
 //     if (type === 'Cuti' && (parseInt(user.sisaCuti) || 0) < 1) {
-//         alert('Maaf, Sisa Cuti Anda (0) tidak mencukupi untuk mengajukan Cuti.');
+//         alert('Maaf, Sisa Cuti Anda (0) tidak mencukupi.');
 //         return;
 //     }
 
-//     // --- UPDATE VALIDASI MANUAL UNTUK IJIN (H-3) ---
-//     // Pastikan user tidak bisa submit jika tanggal lebih tua dari 3 hari lalu
 //     if (isH3Required && intervalData.tglMulai) {
 //         const dMulai = new Date(intervalData.tglMulai);
 //         const dBatas = new Date();
-//         dBatas.setDate(dBatas.getDate() - 3); // Mundur 3 hari dari sekarang
-        
-//         // Reset Jam ke 00:00:00 agar perbandingan hari akurat
+//         dBatas.setDate(dBatas.getDate() - 3);
 //         dMulai.setHours(0,0,0,0);
 //         dBatas.setHours(0,0,0,0);
-
 //         if (dMulai < dBatas) {
 //              alert(`Pengajuan ${type} GAGAL! Batas waktu pengajuan maksimal 3 hari.`);
 //              return;
 //         }
 //     }
-//     // --- END UPDATE VALIDASI ---
 
 //     if (isEditMode) {
 //         const entryTime = new Date(editItem.waktu).getTime();
 //         const now = new Date().getTime();
-//         const diffHours = (now - entryTime) / (1000 * 60 * 60);
-//         if (diffHours > 1) {
+//         if ((now - entryTime) / (1000 * 60 * 60) > 1) {
 //             alert('Waktu edit sudah habis (lebih dari 1 jam).');
 //             return;
 //         }
 //     }
 
 //     if (isIntervalType) {
-//         if (!intervalData.tglMulai || !intervalData.tglSelesai) {
-//              alert('Lengkapi Tanggal!');
-//              return;
-//         }
-//         if (isH3Required && minDateLimit && intervalData.tglMulai < minDateLimit) {
-//             alert('Pengajuan wajib dilakukan minimal 3 hari sebelumnya!');
-//             return;
-//         }
+//         if (!intervalData.tglMulai || !intervalData.tglSelesai) { alert('Lengkapi Tanggal!'); return; }
 //     }
 
 //     if (isIntervalType && isTimeRequired) {
-//         if (!intervalData.jamMulai || !intervalData.jamSelesai) {
-//             alert('Lengkapi Jam!');
-//             return; 
-//         }
+//         if (!intervalData.jamMulai || !intervalData.jamSelesai) { alert('Lengkapi Jam!'); return; }
 //     }
 
 //     if (isShiftWorker && isClockIn && !isEditMode && !selectedShift) {
-//         alert('Anda terdaftar sebagai Karyawan Shift. Harap pilih Jam Shift Anda!');
+//         alert('Harap pilih Jam Shift Anda!');
 //         return;
 //     }
 
+//     // Validasi Foto
 //     if (isPhotoRequired && !isEditMode && !photo) { alert('Foto Wajib untuk tipe absen ini.'); return; }
+    
+//     // Validasi Lampiran Khusus Sakit (Opsional/Wajib tergantung kebijakan, disini saya buat Wajib jika Sakit)
+//     if (type === 'Sakit' && !isEditMode && !fileLampiran && !photo) {
+//         alert('Mohon lampirkan Foto Surat Dokter atau Upload File Surat Dokter.');
+//         return;
+//     }
+
 //     if (isGpsRequired && !isEditMode && !location) { alert('Lokasi belum ditemukan.'); return; }
 
-//     if (type === 'Cuti' && activeCutiList.length > 0) {
-//         const newStart = new Date(intervalData.tglMulai).getTime();
-//         const newEnd = new Date(intervalData.tglSelesai).getTime();
-        
-//         const isBentrok = activeCutiList.some(c => {
-//             const existStart = new Date(c.tglMulai).getTime();
-//             const existEnd = new Date(c.tglSelesai).getTime();
-//             return (newStart <= existEnd && newEnd >= existStart);
-//         });
-//         if (isBentrok) {
-//             alert("Tanggal yang Anda pilih BENTROK dengan pengajuan cuti sebelumnya (Lihat daftar di bawah).");
-//             return;
-//         }
-//     }
-    
 //     setIsSubmitting(true);
 //     try {
 //       let shiftJamMulai = '';
@@ -1087,7 +1137,13 @@ function RemarkScreen({ user, setView }) {
 //           tipe: type, 
 //           lokasi: location ? `${location.lat}, ${location.lng}` : '-', 
 //           catatan: catatan, 
-//           foto: photo, 
+//           foto: photo, // Foto dari kamera
+          
+//           // Data File Upload
+//           fileLampiran: fileLampiran, 
+//           fileName: fileName,
+//           fileMime: fileMime,
+
 //           ...intervalData,
 //           jamMulai: isShiftWorker && isClockIn ? shiftJamMulai : intervalData.jamMulai,
 //           jamSelesai: isShiftWorker && isClockIn ? shiftJamSelesai : intervalData.jamSelesai
@@ -1097,7 +1153,7 @@ function RemarkScreen({ user, setView }) {
 //       const data = await res.json();
 //       if (data.result === 'success') { 
 //         alert(data.message);
-//         if (data.newSisaCuti !== undefined && data.newSisaCuti !== null) {
+//         if (data.newSisaCuti !== undefined) {
 //            const updatedUser = { ...user, sisaCuti: data.newSisaCuti };
 //            setUser(updatedUser);
 //            localStorage.setItem('app_user', JSON.stringify(updatedUser));
@@ -1105,8 +1161,7 @@ function RemarkScreen({ user, setView }) {
 //         setEditItem(null); 
 //         setView(isEditMode ? 'history' : 'dashboard');
 //       } else { alert(data.message); }
-//     } catch (e) { alert('Gagal kirim.'); } finally { setIsSubmitting(false);
-//     }
+//     } catch (e) { alert('Gagal kirim.'); } finally { setIsSubmitting(false); }
 //   };
   
 //   const handleBack = () => { setEditItem(null); setView(isEditMode ? 'history' : 'dashboard'); }
@@ -1115,7 +1170,7 @@ function RemarkScreen({ user, setView }) {
 //     <div className="p-4 flex flex-col h-full overflow-y-auto">
 //       <div className="flex items-center gap-2 mb-4">
 //         <BackButton onClick={handleBack} />
-//         <h2 className="text-xl font-bold ml-2">{isEditMode ? 'Edit Data' : `Konfirmasi ${type}`}</h2>
+//         <h2 className="text-xl font-bold ml-2">{isEditMode ? 'Edit Data' : `Form ${type}`}</h2>
 //       </div>
       
 //       {isH3Required && (
@@ -1125,8 +1180,10 @@ function RemarkScreen({ user, setView }) {
 //         </div>
 //       )}
 
+//       {/* --- FORM CONTAINER --- */}
 //       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-4">
         
+//         {/* SHIFT SELECTOR */}
 //         {isShiftWorker && isClockIn && !isEditMode && (
 //             <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
 //                 <label className="text-xs font-bold text-indigo-800 block mb-2 flex items-center gap-2">
@@ -1139,15 +1196,13 @@ function RemarkScreen({ user, setView }) {
 //                 >
 //                     <option value="">-- Pilih Jam Shift --</option>
 //                     {availableShifts.map((s, idx) => (
-//                         <option key={idx} value={s.value}>
-//                             {s.label} ({s.value})
-//                         </option>
+//                         <option key={idx} value={s.value}>{s.label} ({s.value})</option>
 //                     ))}
-//                     {availableShifts.length === 0 && <option disabled>Tidak ada data shift di Master Data</option>}
 //                 </select>
 //             </div>
 //         )}
 
+//         {/* INTERVAL DATE INPUT */}
 //         {isIntervalType && (
 //             <div className="bg-blue-50 p-3 rounded-lg space-y-3 border border-blue-100">
 //                 <h4 className="font-bold text-blue-800 text-sm flex items-center gap-2"><Calendar className="w-4 h-4"/> Detail Waktu</h4>
@@ -1167,54 +1222,102 @@ function RemarkScreen({ user, setView }) {
 //                         </>
 //                     )}
 //                 </div>
-
-//                 {type === 'Cuti' && activeCutiList.length > 0 && (
-//                     <div className="mt-3 bg-white p-2 rounded border border-orange-200">
-//                       <p className="text-[10px] font-bold text-orange-600 mb-1 flex items-center gap-1">
-//                         <AlertTriangle className="w-3 h-3"/> Tanggal Cuti Aktif (Jangan Double):
-//                     </p>
-//                     <ul className="space-y-1">
-//                          {activeCutiList.map((c, idx) => (
-//                         <li key={idx} className="text-[10px] text-gray-600 flex justify-between border-b border-gray-100 pb-1">
-//                             <span>{new Date(c.tglMulai).toLocaleDateString('id-ID')} - {new Date(c.tglSelesai).toLocaleDateString('id-ID')}</span>
-//                             <span className={`font-bold ${c.status === 'Approved' ? 'text-green-600' : 'text-yellow-600'}`}>{c.status}</span>
-//                         </li>
-//                         ))}
-//                     </ul>
-//                     </div>
-//                 )}
 //             </div>
 //         )}
 
+//         {/* FILE UPLOAD (KHUSUS SAKIT/IJIN) */}
+//         {isUploadAllowed && (
+//             <div className="bg-orange-50 p-3 rounded-lg border border-orange-100 border-dashed">
+//                 <label className="text-xs font-bold text-orange-800 block mb-2 flex items-center gap-2">
+//                     <FileIcon className="w-4 h-4" /> Upload Dokumen (Surat Dokter/Bukti)
+//                 </label>
+//                 <input 
+//                     type="file" 
+//                     id="lampiranInput"
+//                     accept="image/*,.pdf" 
+//                     className="hidden" 
+//                     onChange={handleFileChange}
+//                 />
+//                 <label htmlFor="lampiranInput" className="cursor-pointer w-full flex flex-col items-center justify-center p-4 bg-white border border-orange-200 rounded-lg hover:bg-orange-100 transition">
+//                     <Upload className="w-6 h-6 text-orange-500 mb-1" />
+//                     <span className="text-xs font-bold text-gray-600">
+//                         {fileName ? fileName : "Klik untuk Upload File"}
+//                     </span>
+//                     <span className="text-[9px] text-gray-400 mt-1">(Max 5MB - Gambar/PDF)</span>
+//                 </label>
+//             </div>
+//         )}
+
+//         {/* CAMERA SECTION */}
 //         {isPhotoRequired && (
 //           <>
 //             {!isEditMode && (
-//               <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center relative border-2 border-dashed">
-//                   {!photo && !cameraActive && <button onClick={startCamera} className="text-blue-600 flex flex-col items-center"><Camera /><span className="text-sm">Buka Kamera (Wajib)</span></button>}
+//               <div className="bg-gray-100 rounded-lg h-72 flex items-center justify-center relative border-2 border-dashed overflow-hidden">
+//                 {!photo && !cameraActive && (
+//                     <button onClick={startCamera} className="text-blue-600 flex flex-col items-center gap-2 p-4">
+//                         <div className="bg-blue-100 p-3 rounded-full"><Camera className="w-8 h-8" /></div>
+//                         <span className="text-sm font-bold">Buka Kamera (Wajib)</span>
+//                         {type === 'Sakit' && <span className="text-xs text-gray-500">(Gunakan untuk foto surat)</span>}
+//                     </button>
+//                 )}
+                
 //                 <video ref={videoRef} autoPlay playsInline className={`absolute inset-0 w-full h-full object-cover ${cameraActive && !photo ? 'block' : 'hidden'}`} />
 //                 <canvas ref={canvasRef} className="hidden" />
+                
 //                 {photo && <img src={photo} alt="Preview Absensi" className="absolute inset-0 w-full h-full object-cover" />}
-//                 {cameraActive && <button onClick={takePhoto} className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white rounded-full p-1"><div className="w-12 h-12 bg-red-500 rounded-full border-4 border-white"></div></button>}
+                
+//                 {/* Tombol Shutter & Switch Camera */}
+//                 {cameraActive && (
+//                     <div className="absolute bottom-4 left-0 right-0 flex items-center justify-center gap-6">
+//                          {/* Tombol Switch Camera */}
+//                          <button onClick={toggleCamera} className="bg-white/30 backdrop-blur-sm p-3 rounded-full hover:bg-white/50 transition text-white border border-white/50 shadow-sm">
+//                             <History className="w-5 h-5" /> 
+//                          </button>
+
+//                          {/* Tombol Foto */}
+//                          <button onClick={takePhoto} className="bg-white rounded-full p-1 shadow-lg transform active:scale-95 transition">
+//                             <div className="w-14 h-14 bg-red-600 rounded-full border-4 border-white"></div>
+//                         </button>
+                        
+//                          {/* Placeholder agar center */}
+//                          <div className="w-11"></div> 
+//                     </div>
+//                 )}
+                
+//                 {/* Overlay Status Kamera */}
+//                 {cameraActive && (
+//                     <div className="absolute top-4 right-4 bg-black/50 text-white text-[10px] px-2 py-1 rounded backdrop-blur-sm">
+//                         {facingMode === 'user' ? 'Kamera Depan' : 'Kamera Belakang'}
+//                     </div>
+//                 )}
 //               </div>
 //             )}
-//             {photo && !isEditMode && <button onClick={() => {setPhoto(null); startCamera();}} className="w-full text-center text-blue-600 text-sm">Foto Ulang</button>}
+//             {photo && !isEditMode && (
+//                 <button onClick={() => {setPhoto(null); startCamera();}} className="w-full py-2 text-center text-blue-600 text-sm font-bold bg-blue-50 rounded-lg hover:bg-blue-100 transition">
+//                     Ambil Foto Ulang
+//                 </button>
+//             )}
 //           </>
 //         )}
         
+//         {/* GPS */}
 //         {!isEditMode && isGpsRequired && (
-//             <div className="flex items-center gap-3 bg-blue-50 p-3 rounded-lg text-blue-800">
-//                 <MapPin /><span className="text-sm">{location ? `${location.lat}, ${location.lng}` : 'Mencari Lokasi...'}</span>
+//             <div className="flex items-center gap-3 bg-blue-50 p-3 rounded-lg text-blue-800 border border-blue-100">
+//                 <MapPin className="text-red-500"/><span className="text-sm font-medium">{location ? `${location.lat}, ${location.lng}` : 'Mencari Lokasi...'}</span>
 //             </div>
 //         )}
 
-//         <textarea className="w-full border p-2 rounded text-sm" placeholder="Catatan..." value={catatan} onChange={e => setCatatan(e.target.value)}></textarea>
+//         <textarea className="w-full border p-3 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Catatan tambahan..." rows="2" value={catatan} onChange={e => setCatatan(e.target.value)}></textarea>
 //       </div>
-//       <button onClick={handleSubmit} disabled={isSubmitting} className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold mt-6 mb-10">{isSubmitting ? 'Menyimpan...' : (isEditMode ? 'Update Data' : 'Kirim Absen')}</button>
+      
+//       <button onClick={handleSubmit} disabled={isSubmitting} className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold mt-6 mb-10 shadow-lg active:scale-95 transition-all">
+//           {isSubmitting ? 'Mengirim Data...' : (isEditMode ? 'Update Data' : 'Kirim Sekarang')}
+//       </button>
 //     </div>
 //   );
 // }
 
-// --- 3. ATTENDANCE FORM (UPDATED: SAKIT + UPLOAD + BACK CAMERA) ---
+// --- 3. ATTENDANCE FORM (FIX: HAPUS TOMBOL UPLOAD UTK SAKIT) ---
 function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterData }) {
   const type = localStorage.getItem('absenType') || 'Hadir';
   const isEditMode = !!editItem;
@@ -1224,8 +1327,10 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
   const NO_GPS_TYPES = ['Ijin', 'Cuti', 'Dinas Luar', 'Sakit', 'Cuti EO', 'Tukar Shift'];
   const NO_TIME_TYPES = ['Cuti', 'Dinas Luar', 'Sakit', 'Cuti EO']; 
   const H3_REQUIRED_TYPES = ['Ijin', 'Tukar Shift']; 
-  // Sakit butuh upload file tambahan
-  const UPLOAD_ALLOWED_TYPES = ['Sakit', 'Ijin', 'Dinas Luar']; 
+  
+  // PERBAIKAN DI SINI: Menghapus 'Sakit' dari daftar upload
+  // Jadi untuk Sakit hanya mengandalkan Foto Kamera
+  const UPLOAD_ALLOWED_TYPES = ['Ijin', 'Dinas Luar']; 
 
   const isPhotoRequired = PHOTO_REQUIRED_TYPES.includes(type);
   const isGpsRequired = !NO_GPS_TYPES.includes(type);
@@ -1244,7 +1349,7 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
   const canvasRef = useRef(null);
   const [photo, setPhoto] = useState(null);
   const [cameraActive, setCameraActive] = useState(false);
-  // Default: Sakit pakai kamera belakang, lainnya depan
+  // Default: Sakit pakai kamera belakang (environment), lainnya depan (user)
   const [facingMode, setFacingMode] = useState(type === 'Sakit' ? 'environment' : 'user');
 
   // FORM DATA STATE
@@ -1283,8 +1388,6 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
         jamSelesai: editItem.jamSelesai !== '-' ? editItem.jamSelesai : '' 
       });
       setPhoto(editItem.foto); 
-      // Note: File lampiran lama tidak diload ulang ke input file karena keamanan browser, 
-      // tapi backend harus handle agar tidak hilang jika tidak diupdate.
     }
   }, [editItem, isEditMode]);
 
@@ -1297,7 +1400,7 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
     }
   }, [isGpsRequired, isEditMode]);
 
-  // --- CAMERA LOGIC (UPDATED) ---
+  // --- CAMERA LOGIC ---
   const stopCamera = () => {
       if (videoRef.current && videoRef.current.srcObject) {
           const tracks = videoRef.current.srcObject.getTracks();
@@ -1308,7 +1411,7 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
   };
 
   const startCamera = async () => { 
-      stopCamera(); // Stop dulu jika ada yg jalan
+      stopCamera(); 
       try { 
           const stream = await navigator.mediaDevices.getUserMedia({ 
               video: { facingMode: facingMode } 
@@ -1322,7 +1425,6 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
       } 
   };
 
-  // Efek ganti kamera saat tombol switch ditekan
   useEffect(() => {
       if (cameraActive) {
           startCamera();
@@ -1341,7 +1443,7 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
           canvas.width = video.videoWidth; 
           canvas.height = video.videoHeight; 
           canvas.getContext('2d').drawImage(video, 0, 0); 
-          setPhoto(canvas.toDataURL('image/jpeg', 0.8)); // Kompresi 0.8
+          setPhoto(canvas.toDataURL('image/jpeg', 0.8)); 
           stopCamera();
       } 
   };
@@ -1350,7 +1452,7 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
   const handleFileChange = (e) => {
       const file = e.target.files[0];
       if (file) {
-          if (file.size > 5 * 1024 * 1024) { // Limit 5MB
+          if (file.size > 5 * 1024 * 1024) { 
               alert("Ukuran file terlalu besar (Max 5MB)");
               return;
           }
@@ -1359,7 +1461,7 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
           
           const reader = new FileReader();
           reader.onloadend = () => {
-              setFileLampiran(reader.result); // Base64 Result
+              setFileLampiran(reader.result); 
           };
           reader.readAsDataURL(file);
       }
@@ -1426,12 +1528,15 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
         return;
     }
 
-    // Validasi Foto
-    if (isPhotoRequired && !isEditMode && !photo) { alert('Foto Wajib untuk tipe absen ini.'); return; }
+    // Validasi Foto (Sekarang Sakit wajib foto kamera)
+    if (isPhotoRequired && !isEditMode && !photo) { 
+        alert(type === 'Sakit' ? 'Mohon ambil foto Surat Dokter menggunakan kamera.' : 'Foto Wajib untuk tipe absen ini.'); 
+        return; 
+    }
     
-    // Validasi Lampiran Khusus Sakit (Opsional/Wajib tergantung kebijakan, disini saya buat Wajib jika Sakit)
-    if (type === 'Sakit' && !isEditMode && !fileLampiran && !photo) {
-        alert('Mohon lampirkan Foto Surat Dokter atau Upload File Surat Dokter.');
+    // Validasi Upload (Hanya jika tipe masuk UPLOAD_ALLOWED_TYPES)
+    if (isUploadAllowed && !isEditMode && !fileLampiran) {
+        alert('Mohon upload dokumen lampiran.');
         return;
     }
 
@@ -1457,9 +1562,9 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
           tipe: type, 
           lokasi: location ? `${location.lat}, ${location.lng}` : '-', 
           catatan: catatan, 
-          foto: photo, // Foto dari kamera
+          foto: photo, 
           
-          // Data File Upload
+          // Data File Upload (Jika ada)
           fileLampiran: fileLampiran, 
           fileName: fileName,
           fileMime: fileMime,
@@ -1545,11 +1650,11 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
             </div>
         )}
 
-        {/* FILE UPLOAD (KHUSUS SAKIT/IJIN) */}
+        {/* FILE UPLOAD (HANYA MUNCUL JIKA TYPE TERMASUK DI UPLOAD_ALLOWED_TYPES) */}
         {isUploadAllowed && (
             <div className="bg-orange-50 p-3 rounded-lg border border-orange-100 border-dashed">
                 <label className="text-xs font-bold text-orange-800 block mb-2 flex items-center gap-2">
-                    <FileIcon className="w-4 h-4" /> Upload Dokumen (Surat Dokter/Bukti)
+                    <FileIcon className="w-4 h-4" /> Upload Dokumen (Bukti)
                 </label>
                 <input 
                     type="file" 
@@ -1577,7 +1682,7 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
                     <button onClick={startCamera} className="text-blue-600 flex flex-col items-center gap-2 p-4">
                         <div className="bg-blue-100 p-3 rounded-full"><Camera className="w-8 h-8" /></div>
                         <span className="text-sm font-bold">Buka Kamera (Wajib)</span>
-                        {type === 'Sakit' && <span className="text-xs text-gray-500">(Gunakan untuk foto surat)</span>}
+                        {type === 'Sakit' && <span className="text-xs text-gray-500">(Foto Surat Dokter)</span>}
                     </button>
                 )}
                 
