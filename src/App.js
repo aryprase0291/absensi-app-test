@@ -2552,15 +2552,300 @@ function ChangePasswordScreen({ user, setView }) {
 }
 
 // --- 9. DB ABSEN SCREEN (DATA MESIN - FIX FILTER TANGGAL) ---
+// function DbAbsenScreen({ user, setView }) {
+//   const [list, setList] = useState([]);
+//   const [loading, setLoading] = useState(true);
+
+//   // STATE FILTER
+//   const [filterStart, setFilterStart] = useState('');
+//   const [filterEnd, setFilterEnd] = useState('');
+//   const [filterStatus, setFilterStatus] = useState('All'); 
+//   const [showFilter, setShowFilter] = useState(false);
+
+//   // MAP KETERANGAN
+//   const KETERANGAN_MAP = {
+//       'H': 'Hadir', 'T': 'Telat', 'O': 'Off / Libur', 'CB': 'Cuti Bersama',
+//       'PC': 'Pulang Cepat', 'Si': 'Tdk Absen Masuk', 'So': 'Tdk Absen Pulang',
+//       'I': 'Ijin', 'S': 'Sakit', 'C': 'Cuti', 'A': 'Alpa',
+//       'DL': 'Dinas Luar', 'TPC': 'Telat, Pulang Cepat', 'TSo': 'Telat, Tdk Absen Pulang',
+//       'TSi': 'Telat, Tdk Absen Masuk', 'SiSo': 'Tdk Absen Masuk & Pulang',
+//       'SiPC': 'Tdk Absen Masuk, Pulang Cepat', 'AC': 'Alpa Lebih Cuti',
+//       'EO': 'Extra Ordinary', 'NF': 'Tidak Absen Mesin'
+//   };
+
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       setLoading(true);
+//       try {
+//         const res = await fetch(SCRIPT_URL, { 
+//             method: 'POST', 
+//             body: JSON.stringify({ 
+//                 action: 'get_db_absen', 
+//                 userId: user.id,
+//                 noPayroll: user.noPayroll 
+//             }) 
+//         });
+//         const data = await res.json();
+//         if (data.result === 'success') {
+//             setList(data.list);
+//         } else {
+//             alert(data.message);
+//         }
+//       } catch (e) {
+//         console.error(e);
+//         alert("Gagal memuat data mesin.");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+    
+//     if (user) fetchData();
+//   }, [user]);
+
+
+  
+//   // --- HELPER: PARSING TANGGAL YANG LEBIH KUAT ---
+//   // Fungsi ini mengatasi masalah format DD-MM-YYYY atau DD/MM/YYYY
+//   const parseDate = (dateStr) => {
+//       if (!dateStr) return null;
+//       try {
+//           // Jika format sudah YYYY-MM-DD (ISO)
+//           if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return new Date(dateStr);
+          
+//           // Jika format DD-MM-YYYY atau DD/MM/YYYY (Indonesia)
+//           const parts = dateStr.match(/(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+//           if (parts) {
+//              // parts[1]=Tgl, parts[2]=Bulan, parts[3]=Tahun
+//              // Ubah ke format ISO YYYY-MM-DD agar bisa dibaca new Date()
+//              return new Date(`${parts[3]}-${parts[2]}-${parts[1]}`);
+//           }
+//           // Fallback
+//           return new Date(dateStr);
+//       } catch (e) {
+//           return null;
+//       }
+//   };
+
+//   // --- LOGIC FILTERING ---
+//   const filteredList = list.filter(item => {
+//     // 1. Filter Tanggal (DIPERBAIKI)
+//     let matchDate = true;
+//     if (filterStart || filterEnd) {
+//         const itemDateObj = parseDate(item.tanggal); // Gunakan helper parseDate
+        
+//         if (itemDateObj && !isNaN(itemDateObj.getTime())) {
+//              const itemTime = itemDateObj.setHours(0, 0, 0, 0);
+             
+//              const startTime = filterStart ? new Date(filterStart).setHours(0, 0, 0, 0) : null;
+//              const endTime = filterEnd ? new Date(filterEnd).setHours(23, 59, 59, 999) : null;
+
+//              matchDate = (!startTime || itemTime >= startTime) && (!endTime || itemTime <= endTime);
+//         } else {
+//              // Jika tanggal item tidak valid/kosong, jangan tampilkan jika sedang filter tanggal
+//              matchDate = false;
+//         }
+//     }
+
+//     // 2. Filter Status
+//     let matchStatus = true;
+//     if (filterStatus !== 'All') {
+//         matchStatus = item.symbol === filterStatus;
+//     }
+
+//     return matchDate && matchStatus;
+//   });
+
+//   const getSymbolColor = (sym) => {
+//       if(!sym) return 'bg-gray-100 text-gray-600';
+//       const s = sym.toUpperCase();
+//       if(s === 'H' || s === 'A') return 'bg-green-100 text-green-700'; 
+//       if(s === 'T' || s.includes('T')) return 'bg-red-100 text-red-700'; 
+//       return 'bg-blue-100 text-blue-700';
+//   };
+
+//   const translateDay = (dayName) => {
+//       if (!dayName) return '-';
+//       const map = { 'SUN': 'MINGGU', 'MON': 'SENIN', 'TUE': 'SELASA', 'WED': 'RABU', 'THU': 'KAMIS', 'FRI': 'JUMAT', 'SAT': 'SABTU' };
+//       const key = String(dayName).toUpperCase().substring(0, 3);
+//       return map[key] || dayName;
+//   };
+
+//   const clearFilter = () => {
+//     setFilterStart('');
+//     setFilterEnd('');
+//     setFilterStatus('All');
+//   };
+
+//   return (
+//     <div className="p-4 h-full overflow-y-auto pb-20">
+//       <div className="flex items-center justify-between mb-4">
+//         <div className="flex items-center gap-2">
+//             <BackButton onClick={() => setView('dashboard')} />
+//             <h2 className="text-xl font-bold ml-2">Data Mesin</h2>
+//         </div>
+        
+//         <button 
+//             onClick={() => setShowFilter(!showFilter)} 
+//             className={`p-2 rounded-lg border transition-colors ${showFilter ? 'bg-blue-100 text-blue-600 border-blue-300' : 'bg-white text-gray-500 border-gray-200'}`}
+//             title="Filter Data"
+//         >
+//             <Filter className="w-5 h-5" />
+//         </button>
+//       </div>
+
+//       <div className="bg-indigo-50 border border-indigo-200 p-3 rounded-lg mb-4 text-xs text-indigo-800">
+//         <p className="font-bold flex items-center gap-1"><Info className="w-3 h-3"/> Informasi:</p>
+//         <p>Data ini sinkron langsung dari Mesin Fingerprint ID - <strong>{user.noPayroll}</strong>.</p>
+//       </div>
+
+//       {showFilter && (
+//         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4 animate-in fade-in slide-in-from-top-2">
+//             <div className="flex justify-between items-center mb-3">
+//                 <h4 className="text-xs font-bold text-gray-700 flex items-center gap-2"><Filter className="w-4 h-4"/> Filter Data</h4>
+//                 {(filterStart || filterEnd || filterStatus !== 'All') && (
+//                     <button onClick={clearFilter} className="text-[10px] text-red-500 font-bold hover:underline flex items-center gap-1">
+//                         <Trash2 className="w-3 h-3"/> Reset Filter
+//                     </button>
+//                 )}
+//             </div>
+            
+//             <div className="space-y-3">
+//                 <div className="grid grid-cols-2 gap-3">
+//                     <div>
+//                         <label className="text-[10px] text-gray-400 block mb-1">Dari Tanggal</label>
+//                         <input 
+//                             type="date" 
+//                             className="w-full p-2 border rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+//                             value={filterStart}
+//                             onChange={(e) => setFilterStart(e.target.value)}
+//                         />
+//                     </div>
+//                     <div>
+//                         <label className="text-[10px] text-gray-400 block mb-1">Sampai Tanggal</label>
+//                         <input 
+//                             type="date" 
+//                             className="w-full p-2 border rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+//                             value={filterEnd}
+//                             onChange={(e) => setFilterEnd(e.target.value)}
+//                         />
+//                     </div>
+//                 </div>
+
+//                 <div>
+//                     <label className="text-[10px] text-gray-400 block mb-1">Status / Keterangan</label>
+//                     <select 
+//                         className="w-full p-2 border rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+//                         value={filterStatus}
+//                         onChange={(e) => setFilterStatus(e.target.value)}
+//                     >
+//                         <option value="All">-- Semua Status --</option>
+//                         {Object.entries(KETERANGAN_MAP).map(([key, label]) => (
+//                             <option key={key} value={key}>
+//                                 {label} ({key})
+//                             </option>
+//                         ))}
+//                     </select>
+//                 </div>
+//             </div>
+
+//              <div className="mt-3 pt-2 border-t text-[10px] text-blue-600 font-medium text-right">
+//                 Ditemukan: <strong>{filteredList.length}</strong> Data
+//             </div>
+//         </div>
+//       )}
+
+//       {loading ? (
+//           <p className="text-center text-gray-500 mt-10 animate-pulse">Sedang sinkronisasi data mesin...</p>
+//       ) : (
+//         <div className="space-y-3">
+//             {filteredList.length === 0 && (
+//                 <div className="text-center py-10 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+//                     <p>Tidak ada data ditemukan.</p>
+//                     {(filterStart || filterEnd || filterStatus !== 'All') && <p className="text-xs mt-1">Coba ubah filter pencarian Anda.</p>}
+//                 </div>
+//             )}
+
+//             {filteredList.map((item, idx) => {
+//                 const textKeterangan = KETERANGAN_MAP[item.symbol] ? `(${KETERANGAN_MAP[item.symbol]})` : '';
+
+//                 return (
+//                     <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+//                         <div className="flex justify-between items-start border-b border-gray-100 pb-2 mb-2">
+//                             <div>
+//                                 <p className="text-xs text-gray-500 font-bold uppercase">
+//                                     {translateDay(item.week)}
+//                                 </p>
+//                                 <h4 className="font-bold text-gray-800">{item.tanggal}</h4>
+//                             </div>
+//                             <div className="text-right">
+//                                  <span className={`text-xs font-bold px-2 py-1 rounded ${getSymbolColor(item.symbol)} block`}>
+//                                       {item.symbol || '-'} <br/>
+//                                       <span className="text-[10px] opacity-80 font-normal">{textKeterangan}</span>
+//                                  </span>
+//                             </div>
+//                         </div>
+                        
+//                         <div className="grid grid-cols-2 gap-y-2 text-sm">
+//                             <div>
+//                                 <p className="text-[10px] text-gray-400">Jam Masuk</p>
+//                                 <p className="font-medium font-bold text-blue-600">{formatTimeOnly(item.masuk)}</p>
+//                             </div>
+//                             <div>
+//                                 <p className="text-[10px] text-gray-400">Jam Pulang</p>
+//                                 <p className="font-medium font-bold text-blue-600">{formatTimeOnly(item.pulang)}</p>
+//                             </div>
+//                             <div>
+//                                 <p className="text-[10px] text-gray-400">Jam Kerja</p>
+//                                  <p className="font-medium">{item.jamKerja}</p>
+//                             </div>
+//                             <div>
+//                                 <p className="text-[10px] text-gray-400">Telat</p>
+//                                 <p className={`font-medium ${item.telat ? 'text-red-600' : 'text-gray-600'}`}>
+//                                 {formatTimeOnly(item.telat)} 
+//                                 </p>
+//                           </div>
+//                         </div>
+    
+//                         {item.waktuScan && (
+//                             <div className="mt-2 bg-gray-50 p-2 rounded border border-gray-100">
+//                                 <p className="text-[10px] text-gray-400 mb-1 flex items-center gap-1">
+//                                     <ScanFace className="w-3 h-3"/> Log Waktu Scan:
+//                                 </p>
+//                                 <p className="text-[10px] font-mono text-gray-600 break-words leading-tight">
+//                                     {String(item.waktuScan).split(' ').map(t => formatTimeOnly(t)).join(' ')}
+//                                 </p>
+//                             </div>
+//                         )}
+//                     </div>
+//                 );
+//             })}
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+// --- 9. DB ABSEN SCREEN (FULL FIX: MANAGER FILTER & NO ERRORS) ---
 function DbAbsenScreen({ user, setView }) {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // STATE FILTER
+  // STATE FILTER TANGGAL & STATUS
   const [filterStart, setFilterStart] = useState('');
   const [filterEnd, setFilterEnd] = useState('');
   const [filterStatus, setFilterStatus] = useState('All'); 
   const [showFilter, setShowFilter] = useState(false);
+
+  // STATE PILIH KARYAWAN (KHUSUS PIMPINAN)
+  // Definisi Variabel yang sebelumnya error (undefined) ada disini:
+  const userRole = user.role ? String(user.role).toLowerCase() : '';
+  const canViewOthers = ['admin', 'hrd', 'manager'].includes(userRole);
+  
+  const [targetUserId, setTargetUserId] = useState(user.id); // Default diri sendiri
+  const [targetUserName, setTargetUserName] = useState(user.nama); // Nama yang ditampilkan
+  const [showUserSelect, setShowUserSelect] = useState(false);
+  const [allUsers, setAllUsers] = useState([]);
+  const [searchUser, setSearchUser] = useState('');
 
   // MAP KETERANGAN
   const KETERANGAN_MAP = {
@@ -2573,6 +2858,33 @@ function DbAbsenScreen({ user, setView }) {
       'EO': 'Extra Ordinary', 'NF': 'Tidak Absen Mesin'
   };
 
+  // 1. FETCH LIST USER (DIPERBARUI: KIRIM ROLE & DIVISI)
+  useEffect(() => {
+      if (canViewOthers) {
+          const fetchUsers = async () => {
+              try {
+                  const res = await fetch(SCRIPT_URL, { 
+                      method: 'POST', 
+                      body: JSON.stringify({ 
+                          action: 'get_user_list_simple',
+                          lokasi: user.lokasi || 'All',
+                          filterLokasi: 'All',
+                          // [PENTING] Kirim Role & Divisi untuk filtering di server (Manager A lihat Tim A)
+                          role: userRole,
+                          divisi: user.divisi 
+                      }) 
+                  });
+                  const data = await res.json();
+                  if(data.result === 'success') {
+                      setAllUsers(data.list);
+                  }
+              } catch(e) { console.error("Gagal load users"); }
+          };
+          fetchUsers();
+      }
+  }, [canViewOthers, user.lokasi, userRole, user.divisi]);
+
+  // 2. FETCH DATA MESIN (DIPERBARUI: KIRIM DIVISI REQUESTER)
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -2581,7 +2893,11 @@ function DbAbsenScreen({ user, setView }) {
             method: 'POST', 
             body: JSON.stringify({ 
                 action: 'get_db_absen', 
-                userId: user.id,
+                userId: user.id,        
+                roleRequester: userRole, 
+                // [PENTING] Kirim Divisi Requester untuk validasi keamanan di server
+                divisiRequester: user.divisi, 
+                targetUserId: targetUserId, 
                 noPayroll: user.noPayroll 
             }) 
         });
@@ -2590,6 +2906,7 @@ function DbAbsenScreen({ user, setView }) {
             setList(data.list);
         } else {
             alert(data.message);
+            setList([]); // Kosongkan list jika akses ditolak/error
         }
       } catch (e) {
         console.error(e);
@@ -2599,56 +2916,36 @@ function DbAbsenScreen({ user, setView }) {
       }
     };
     
-    if (user) fetchData();
-  }, [user]);
+    fetchData();
+  }, [user.id, user.noPayroll, userRole, user.divisi, targetUserId]);
 
-  // --- HELPER: PARSING TANGGAL YANG LEBIH KUAT ---
-  // Fungsi ini mengatasi masalah format DD-MM-YYYY atau DD/MM/YYYY
+  // --- HELPER: PARSING TANGGAL ---
   const parseDate = (dateStr) => {
       if (!dateStr) return null;
       try {
-          // Jika format sudah YYYY-MM-DD (ISO)
           if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return new Date(dateStr);
-          
-          // Jika format DD-MM-YYYY atau DD/MM/YYYY (Indonesia)
           const parts = dateStr.match(/(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
-          if (parts) {
-             // parts[1]=Tgl, parts[2]=Bulan, parts[3]=Tahun
-             // Ubah ke format ISO YYYY-MM-DD agar bisa dibaca new Date()
-             return new Date(`${parts[3]}-${parts[2]}-${parts[1]}`);
-          }
-          // Fallback
+          if (parts) return new Date(`${parts[3]}-${parts[2]}-${parts[1]}`);
           return new Date(dateStr);
-      } catch (e) {
-          return null;
-      }
+      } catch (e) { return null; }
   };
 
-  // --- LOGIC FILTERING ---
+  // --- LOGIC FILTERING TAMPILAN ---
   const filteredList = list.filter(item => {
-    // 1. Filter Tanggal (DIPERBAIKI)
+    // 1. Filter Tanggal
     let matchDate = true;
     if (filterStart || filterEnd) {
-        const itemDateObj = parseDate(item.tanggal); // Gunakan helper parseDate
-        
+        const itemDateObj = parseDate(item.tanggal);
         if (itemDateObj && !isNaN(itemDateObj.getTime())) {
              const itemTime = itemDateObj.setHours(0, 0, 0, 0);
-             
              const startTime = filterStart ? new Date(filterStart).setHours(0, 0, 0, 0) : null;
              const endTime = filterEnd ? new Date(filterEnd).setHours(23, 59, 59, 999) : null;
-
              matchDate = (!startTime || itemTime >= startTime) && (!endTime || itemTime <= endTime);
-        } else {
-             // Jika tanggal item tidak valid/kosong, jangan tampilkan jika sedang filter tanggal
-             matchDate = false;
-        }
+        } else { matchDate = false; }
     }
-
     // 2. Filter Status
     let matchStatus = true;
-    if (filterStatus !== 'All') {
-        matchStatus = item.symbol === filterStatus;
-    }
+    if (filterStatus !== 'All') matchStatus = item.symbol === filterStatus;
 
     return matchDate && matchStatus;
   });
@@ -2674,6 +2971,12 @@ function DbAbsenScreen({ user, setView }) {
     setFilterStatus('All');
   };
 
+  const handleSelectUser = (selectedUser) => {
+      setTargetUserId(selectedUser.id);
+      setTargetUserName(selectedUser.nama);
+      setShowUserSelect(false);
+  };
+
   return (
     <div className="p-4 h-full overflow-y-auto pb-20">
       <div className="flex items-center justify-between mb-4">
@@ -2691,11 +2994,74 @@ function DbAbsenScreen({ user, setView }) {
         </button>
       </div>
 
+      {/* --- PANEL PILIH KARYAWAN (HANYA UTK PIMPINAN) --- */}
+      {canViewOthers && (
+          <div className="mb-4 relative z-20">
+              <button 
+                  onClick={() => setShowUserSelect(!showUserSelect)}
+                  className="w-full bg-white border border-blue-200 p-3 rounded-xl flex items-center justify-between shadow-sm active:scale-95 transition hover:border-blue-400"
+              >
+                  <div className="flex items-center gap-2 overflow-hidden">
+                      <div className="bg-blue-100 p-1.5 rounded-full"><Users className="w-4 h-4 text-blue-600"/></div>
+                      <div className="text-left truncate">
+                          <p className="text-[10px] text-gray-400 font-bold uppercase">Melihat Data:</p>
+                          <p className="text-sm font-bold text-gray-800 truncate">{targetUserName} {targetUserId === user.id ? '(Saya)' : ''}</p>
+                      </div>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showUserSelect ? 'rotate-180' : ''}`}/>
+              </button>
+
+              {/* DROPDOWN LIST USER */}
+              {showUserSelect && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl max-h-[300px] flex flex-col p-2 animate-in fade-in zoom-in-95 origin-top">
+                      <div className="relative mb-2">
+                          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5"/>
+                          <input 
+                              type="text" 
+                              placeholder="Cari Nama..." 
+                              className="w-full pl-9 p-2 text-sm border rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                              value={searchUser}
+                              onChange={e => setSearchUser(e.target.value)}
+                              autoFocus
+                          />
+                      </div>
+                      <div className="overflow-y-auto flex-1 space-y-1">
+                          {/* Opsi Diri Sendiri */}
+                          <button 
+                              onClick={() => handleSelectUser({id: user.id, nama: user.nama})}
+                              className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 ${targetUserId === user.id ? 'bg-blue-50 text-blue-700 font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
+                          >
+                              <div className="w-2 h-2 rounded-full bg-blue-500"></div> Saya Sendiri
+                          </button>
+                          
+                          <div className="h-px bg-gray-100 my-1"></div>
+
+                          {/* List Karyawan Lain */}
+                          {allUsers.filter(u => u.nama.toLowerCase().includes(searchUser.toLowerCase()) && u.id !== user.id).map(u => (
+                              <button 
+                                  key={u.id}
+                                  onClick={() => handleSelectUser(u)}
+                                  className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 ${targetUserId === u.id ? 'bg-blue-50 text-blue-700 font-bold' : 'hover:bg-gray-50 text-gray-700'}`}
+                              >
+                                  <User className="w-3 h-3 text-gray-400"/> {u.nama}
+                              </button>
+                          ))}
+                          {allUsers.filter(u => u.nama.toLowerCase().includes(searchUser.toLowerCase())).length === 0 && (
+                              <p className="text-center text-xs text-gray-400 py-2">Tidak ditemukan.</p>
+                          )}
+                      </div>
+                  </div>
+              )}
+          </div>
+      )}
+
+      {/* --- INFO HEADER --- */}
       <div className="bg-indigo-50 border border-indigo-200 p-3 rounded-lg mb-4 text-xs text-indigo-800">
         <p className="font-bold flex items-center gap-1"><Info className="w-3 h-3"/> Informasi:</p>
-        <p>Data ini sinkron langsung dari Mesin Fingerprint ID - <strong>{user.noPayroll}</strong>.</p>
+        <p>Menampilkan Data Mesin milik: <strong>{targetUserName}</strong>.</p>
       </div>
 
+      {/* --- PANEL FILTER --- */}
       {showFilter && (
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4 animate-in fade-in slide-in-from-top-2">
             <div className="flex justify-between items-center mb-3">
@@ -2711,41 +3077,23 @@ function DbAbsenScreen({ user, setView }) {
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <label className="text-[10px] text-gray-400 block mb-1">Dari Tanggal</label>
-                        <input 
-                            type="date" 
-                            className="w-full p-2 border rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                            value={filterStart}
-                            onChange={(e) => setFilterStart(e.target.value)}
-                        />
+                        <input type="date" className="w-full p-2 border rounded-lg text-sm bg-gray-50 outline-none" value={filterStart} onChange={(e) => setFilterStart(e.target.value)} />
                     </div>
                     <div>
                         <label className="text-[10px] text-gray-400 block mb-1">Sampai Tanggal</label>
-                        <input 
-                            type="date" 
-                            className="w-full p-2 border rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                            value={filterEnd}
-                            onChange={(e) => setFilterEnd(e.target.value)}
-                        />
+                        <input type="date" className="w-full p-2 border rounded-lg text-sm bg-gray-50 outline-none" value={filterEnd} onChange={(e) => setFilterEnd(e.target.value)} />
                     </div>
                 </div>
-
                 <div>
                     <label className="text-[10px] text-gray-400 block mb-1">Status / Keterangan</label>
-                    <select 
-                        className="w-full p-2 border rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                    >
+                    <select className="w-full p-2 border rounded-lg text-sm bg-gray-50 outline-none" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                         <option value="All">-- Semua Status --</option>
                         {Object.entries(KETERANGAN_MAP).map(([key, label]) => (
-                            <option key={key} value={key}>
-                                {label} ({key})
-                            </option>
+                            <option key={key} value={key}>{label} ({key})</option>
                         ))}
                     </select>
                 </div>
             </div>
-
              <div className="mt-3 pt-2 border-t text-[10px] text-blue-600 font-medium text-right">
                 Ditemukan: <strong>{filteredList.length}</strong> Data
             </div>
@@ -2753,26 +3101,23 @@ function DbAbsenScreen({ user, setView }) {
       )}
 
       {loading ? (
-          <p className="text-center text-gray-500 mt-10 animate-pulse">Sedang sinkronisasi data mesin...</p>
+          <p className="text-center text-gray-500 mt-10 animate-pulse">Mengambil data mesin...</p>
       ) : (
         <div className="space-y-3">
             {filteredList.length === 0 && (
                 <div className="text-center py-10 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                    <p>Tidak ada data ditemukan.</p>
+                    <p>Tidak ada data ditemukan untuk user ini.</p>
                     {(filterStart || filterEnd || filterStatus !== 'All') && <p className="text-xs mt-1">Coba ubah filter pencarian Anda.</p>}
                 </div>
             )}
 
             {filteredList.map((item, idx) => {
                 const textKeterangan = KETERANGAN_MAP[item.symbol] ? `(${KETERANGAN_MAP[item.symbol]})` : '';
-
                 return (
                     <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start border-b border-gray-100 pb-2 mb-2">
                             <div>
-                                <p className="text-xs text-gray-500 font-bold uppercase">
-                                    {translateDay(item.week)}
-                                </p>
+                                <p className="text-xs text-gray-500 font-bold uppercase">{translateDay(item.week)}</p>
                                 <h4 className="font-bold text-gray-800">{item.tanggal}</h4>
                             </div>
                             <div className="text-right">
@@ -2782,36 +3127,16 @@ function DbAbsenScreen({ user, setView }) {
                                  </span>
                             </div>
                         </div>
-                        
                         <div className="grid grid-cols-2 gap-y-2 text-sm">
-                            <div>
-                                <p className="text-[10px] text-gray-400">Jam Masuk</p>
-                                <p className="font-medium font-bold text-blue-600">{formatTimeOnly(item.masuk)}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] text-gray-400">Jam Pulang</p>
-                                <p className="font-medium font-bold text-blue-600">{formatTimeOnly(item.pulang)}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] text-gray-400">Jam Kerja</p>
-                                 <p className="font-medium">{item.jamKerja}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] text-gray-400">Telat</p>
-                                <p className={`font-medium ${item.telat ? 'text-red-600' : 'text-gray-600'}`}>
-                                {formatTimeOnly(item.telat)} 
-                                </p>
-                          </div>
+                            <div><p className="text-[10px] text-gray-400">Jam Masuk</p><p className="font-medium font-bold text-blue-600">{formatTimeOnly(item.masuk)}</p></div>
+                            <div><p className="text-[10px] text-gray-400">Jam Pulang</p><p className="font-medium font-bold text-blue-600">{formatTimeOnly(item.pulang)}</p></div>
+                            <div><p className="text-[10px] text-gray-400">Jam Kerja</p><p className="font-medium">{item.jamKerja}</p></div>
+                            <div><p className="text-[10px] text-gray-400">Telat</p><p className={`font-medium ${item.telat ? 'text-red-600' : 'text-gray-600'}`}>{formatTimeOnly(item.telat)}</p></div>
                         </div>
-    
                         {item.waktuScan && (
                             <div className="mt-2 bg-gray-50 p-2 rounded border border-gray-100">
-                                <p className="text-[10px] text-gray-400 mb-1 flex items-center gap-1">
-                                    <ScanFace className="w-3 h-3"/> Log Waktu Scan:
-                                </p>
-                                <p className="text-[10px] font-mono text-gray-600 break-words leading-tight">
-                                    {String(item.waktuScan).split(' ').map(t => formatTimeOnly(t)).join(' ')}
-                                </p>
+                                <p className="text-[10px] text-gray-400 mb-1 flex items-center gap-1"><ScanFace className="w-3 h-3"/> Log Waktu Scan:</p>
+                                <p className="text-[10px] font-mono text-gray-600 break-words leading-tight">{String(item.waktuScan).split(' ').map(t => formatTimeOnly(t)).join(' ')}</p>
                             </div>
                         )}
                     </div>
