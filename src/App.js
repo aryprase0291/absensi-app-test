@@ -15,10 +15,6 @@ import { SCRIPT_URL } from './config/constants';
 import { TIMEOUT_DURATION } from './config/constants';
 import BackButton from './components/BackButton';
 
-// --- KONFIGURASI URL ---
-// Ganti dengan URL Web App Google Script Anda yang terbaru
-// const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzAzwhN4JjWEAL2P_pzoSK15a-NFOailbwXrynD5kZ3FXLR9SBgBA4UTgs8fdEW_6_euA/exec';
-
 
 const ICON_MAP = {
   'Hadir': CheckCircle, 'Pulang': LogOut, 'Ijin': FileText, 'Sakit': AlertTriangle, 'Lembur': Clock, 'Dinas': Briefcase, 'Cuti': Calendar
@@ -28,24 +24,6 @@ const COLOR_MAP = {
   'Hadir': 'bg-green-500', 'Pulang': 'bg-red-500', 'Ijin': 'bg-yellow-500', 'Sakit': 'bg-orange-500', 'Lembur': 'bg-purple-500', 'Dinas': 'bg-indigo-500', 'Cuti': 'bg-pink-500'
 };
 
-// const TIMEOUT_DURATION = 5 * 60 * 1000; 
-
-// --- COMPONENT HELPER: TOMBOL BACK ---
-// function BackButton({ onClick }) {
-//   return (
-//     <button 
-//       onClick={onClick} 
-//       className="group flex items-center gap-2 pl-1 pr-4 py-1.5 bg-white text-slate-600 rounded-full shadow-sm border border-slate-200 hover:bg-white hover:text-blue-600 hover:border-blue-200 hover:shadow-md transition-all duration-300 active:scale-95"
-//     >
-//       <div className="bg-slate-100 p-1.5 rounded-full group-hover:bg-blue-50 transition-colors">
-//         <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-//       </div>
-//       <span className="text-sm font-bold">Kembali</span>
-//     </button>
-//   );
-// }
-
-// {/* <BackButton onClick={() => console.log("Kembali ditekan")} /> */}
 
 // --- MAIN APP COMPONENT ---
 export default function AppAbsensi() {
@@ -894,7 +872,7 @@ function RemarkScreen({ user, setView }) {
     );
 }
 
-// --- 3. ATTENDANCE FORM (UPDATED: SAKIT + UPLOAD + BACK CAMERA) ---
+// --- 3. ATTENDANCE FORM (FIX: HAPUS TOMBOL UPLOAD UTK SAKIT) ---
 // function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterData }) {
 //   const type = localStorage.getItem('absenType') || 'Hadir';
 //   const isEditMode = !!editItem;
@@ -904,8 +882,10 @@ function RemarkScreen({ user, setView }) {
 //   const NO_GPS_TYPES = ['Ijin', 'Cuti', 'Dinas Luar', 'Sakit', 'Cuti EO', 'Tukar Shift'];
 //   const NO_TIME_TYPES = ['Cuti', 'Dinas Luar', 'Sakit', 'Cuti EO']; 
 //   const H3_REQUIRED_TYPES = ['Ijin', 'Tukar Shift']; 
-//   // Sakit butuh upload file tambahan
-//   const UPLOAD_ALLOWED_TYPES = ['Sakit', 'Ijin', 'Dinas Luar']; 
+  
+//   // PERBAIKAN DI SINI: Menghapus 'Sakit' dari daftar upload
+//   // Jadi untuk Sakit hanya mengandalkan Foto Kamera
+//   const UPLOAD_ALLOWED_TYPES = ['Ijin', 'Dinas Luar']; 
 
 //   const isPhotoRequired = PHOTO_REQUIRED_TYPES.includes(type);
 //   const isGpsRequired = !NO_GPS_TYPES.includes(type);
@@ -924,7 +904,7 @@ function RemarkScreen({ user, setView }) {
 //   const canvasRef = useRef(null);
 //   const [photo, setPhoto] = useState(null);
 //   const [cameraActive, setCameraActive] = useState(false);
-//   // Default: Sakit pakai kamera belakang, lainnya depan
+//   // Default: Sakit pakai kamera belakang (environment), lainnya depan (user)
 //   const [facingMode, setFacingMode] = useState(type === 'Sakit' ? 'environment' : 'user');
 
 //   // FORM DATA STATE
@@ -963,8 +943,6 @@ function RemarkScreen({ user, setView }) {
 //         jamSelesai: editItem.jamSelesai !== '-' ? editItem.jamSelesai : '' 
 //       });
 //       setPhoto(editItem.foto); 
-//       // Note: File lampiran lama tidak diload ulang ke input file karena keamanan browser, 
-//       // tapi backend harus handle agar tidak hilang jika tidak diupdate.
 //     }
 //   }, [editItem, isEditMode]);
 
@@ -977,7 +955,7 @@ function RemarkScreen({ user, setView }) {
 //     }
 //   }, [isGpsRequired, isEditMode]);
 
-//   // --- CAMERA LOGIC (UPDATED) ---
+//   // --- CAMERA LOGIC ---
 //   const stopCamera = () => {
 //       if (videoRef.current && videoRef.current.srcObject) {
 //           const tracks = videoRef.current.srcObject.getTracks();
@@ -988,7 +966,7 @@ function RemarkScreen({ user, setView }) {
 //   };
 
 //   const startCamera = async () => { 
-//       stopCamera(); // Stop dulu jika ada yg jalan
+//       stopCamera(); 
 //       try { 
 //           const stream = await navigator.mediaDevices.getUserMedia({ 
 //               video: { facingMode: facingMode } 
@@ -1002,7 +980,6 @@ function RemarkScreen({ user, setView }) {
 //       } 
 //   };
 
-//   // Efek ganti kamera saat tombol switch ditekan
 //   useEffect(() => {
 //       if (cameraActive) {
 //           startCamera();
@@ -1021,7 +998,7 @@ function RemarkScreen({ user, setView }) {
 //           canvas.width = video.videoWidth; 
 //           canvas.height = video.videoHeight; 
 //           canvas.getContext('2d').drawImage(video, 0, 0); 
-//           setPhoto(canvas.toDataURL('image/jpeg', 0.8)); // Kompresi 0.8
+//           setPhoto(canvas.toDataURL('image/jpeg', 0.8)); 
 //           stopCamera();
 //       } 
 //   };
@@ -1030,7 +1007,7 @@ function RemarkScreen({ user, setView }) {
 //   const handleFileChange = (e) => {
 //       const file = e.target.files[0];
 //       if (file) {
-//           if (file.size > 5 * 1024 * 1024) { // Limit 5MB
+//           if (file.size > 5 * 1024 * 1024) { 
 //               alert("Ukuran file terlalu besar (Max 5MB)");
 //               return;
 //           }
@@ -1039,7 +1016,7 @@ function RemarkScreen({ user, setView }) {
           
 //           const reader = new FileReader();
 //           reader.onloadend = () => {
-//               setFileLampiran(reader.result); // Base64 Result
+//               setFileLampiran(reader.result); 
 //           };
 //           reader.readAsDataURL(file);
 //       }
@@ -1106,12 +1083,15 @@ function RemarkScreen({ user, setView }) {
 //         return;
 //     }
 
-//     // Validasi Foto
-//     if (isPhotoRequired && !isEditMode && !photo) { alert('Foto Wajib untuk tipe absen ini.'); return; }
+//     // Validasi Foto (Sekarang Sakit wajib foto kamera)
+//     if (isPhotoRequired && !isEditMode && !photo) { 
+//         alert(type === 'Sakit' ? 'Mohon ambil foto Surat Dokter menggunakan kamera.' : 'Foto Wajib untuk tipe absen ini.'); 
+//         return; 
+//     }
     
-//     // Validasi Lampiran Khusus Sakit (Opsional/Wajib tergantung kebijakan, disini saya buat Wajib jika Sakit)
-//     if (type === 'Sakit' && !isEditMode && !fileLampiran && !photo) {
-//         alert('Mohon lampirkan Foto Surat Dokter atau Upload File Surat Dokter.');
+//     // Validasi Upload (Hanya jika tipe masuk UPLOAD_ALLOWED_TYPES)
+//     if (isUploadAllowed && !isEditMode && !fileLampiran) {
+//         alert('Mohon upload dokumen lampiran.');
 //         return;
 //     }
 
@@ -1137,9 +1117,9 @@ function RemarkScreen({ user, setView }) {
 //           tipe: type, 
 //           lokasi: location ? `${location.lat}, ${location.lng}` : '-', 
 //           catatan: catatan, 
-//           foto: photo, // Foto dari kamera
+//           foto: photo, 
           
-//           // Data File Upload
+//           // Data File Upload (Jika ada)
 //           fileLampiran: fileLampiran, 
 //           fileName: fileName,
 //           fileMime: fileMime,
@@ -1225,11 +1205,11 @@ function RemarkScreen({ user, setView }) {
 //             </div>
 //         )}
 
-//         {/* FILE UPLOAD (KHUSUS SAKIT/IJIN) */}
+//         {/* FILE UPLOAD (HANYA MUNCUL JIKA TYPE TERMASUK DI UPLOAD_ALLOWED_TYPES) */}
 //         {isUploadAllowed && (
 //             <div className="bg-orange-50 p-3 rounded-lg border border-orange-100 border-dashed">
 //                 <label className="text-xs font-bold text-orange-800 block mb-2 flex items-center gap-2">
-//                     <FileIcon className="w-4 h-4" /> Upload Dokumen (Surat Dokter/Bukti)
+//                     <FileIcon className="w-4 h-4" /> Upload Dokumen (Bukti)
 //                 </label>
 //                 <input 
 //                     type="file" 
@@ -1257,7 +1237,7 @@ function RemarkScreen({ user, setView }) {
 //                     <button onClick={startCamera} className="text-blue-600 flex flex-col items-center gap-2 p-4">
 //                         <div className="bg-blue-100 p-3 rounded-full"><Camera className="w-8 h-8" /></div>
 //                         <span className="text-sm font-bold">Buka Kamera (Wajib)</span>
-//                         {type === 'Sakit' && <span className="text-xs text-gray-500">(Gunakan untuk foto surat)</span>}
+//                         {type === 'Sakit' && <span className="text-xs text-gray-500">(Foto Surat Dokter)</span>}
 //                     </button>
 //                 )}
                 
@@ -1317,7 +1297,7 @@ function RemarkScreen({ user, setView }) {
 //   );
 // }
 
-// --- 3. ATTENDANCE FORM (FIX: HAPUS TOMBOL UPLOAD UTK SAKIT) ---
+// --- 3. ATTENDANCE FORM (CLEANED: NO WARNINGS) ---
 function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterData }) {
   const type = localStorage.getItem('absenType') || 'Hadir';
   const isEditMode = !!editItem;
@@ -1327,10 +1307,7 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
   const NO_GPS_TYPES = ['Ijin', 'Cuti', 'Dinas Luar', 'Sakit', 'Cuti EO', 'Tukar Shift'];
   const NO_TIME_TYPES = ['Cuti', 'Dinas Luar', 'Sakit', 'Cuti EO']; 
   const H3_REQUIRED_TYPES = ['Ijin', 'Tukar Shift']; 
-  
-  // PERBAIKAN DI SINI: Menghapus 'Sakit' dari daftar upload
-  // Jadi untuk Sakit hanya mengandalkan Foto Kamera
-  const UPLOAD_ALLOWED_TYPES = ['Ijin', 'Dinas Luar']; 
+  const UPLOAD_ALLOWED_TYPES = ['Dinas Luar']; 
 
   const isPhotoRequired = PHOTO_REQUIRED_TYPES.includes(type);
   const isGpsRequired = !NO_GPS_TYPES.includes(type);
@@ -1349,7 +1326,6 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
   const canvasRef = useRef(null);
   const [photo, setPhoto] = useState(null);
   const [cameraActive, setCameraActive] = useState(false);
-  // Default: Sakit pakai kamera belakang (environment), lainnya depan (user)
   const [facingMode, setFacingMode] = useState(type === 'Sakit' ? 'environment' : 'user');
 
   // FORM DATA STATE
@@ -1358,13 +1334,12 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
   const [intervalData, setIntervalData] = useState({ tglMulai: '', tglSelesai: '', jamMulai: '', jamSelesai: '' });
   
   // UPLOAD FILE STATE
-  const [fileLampiran, setFileLampiran] = useState(null); // Base64 string
+  const [fileLampiran, setFileLampiran] = useState(null);
   const [fileName, setFileName] = useState('');
   const [fileMime, setFileMime] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [minDateLimit, setMinDateLimit] = useState('');
-  const [activeCutiList, setActiveCutiList] = useState([]);
 
   // --- INIT DATA ---
   useEffect(() => {
@@ -1467,26 +1442,6 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
       }
   };
 
-  // --- CEK CUTI ---
-  useEffect(() => {
-    if (type === 'Cuti' && !isEditMode) {
-      const fetchCutiHistory = async () => {
-        try {
-          const res = await fetch(SCRIPT_URL, { 
-            method: 'POST', 
-            body: JSON.stringify({ action: 'get_history', userId: user.id, requestorLokasi: 'All' }) 
-          });
-          const data = await res.json();
-          if (data.result === 'success') {
-            const cutiList = data.history.filter(item => item.tipe === 'Cuti' && item.status !== 'Rejected' && item.tglMulai);
-            setActiveCutiList(cutiList);
-          }
-        } catch (e) { console.error("Gagal load history cuti"); }
-      };
-      fetchCutiHistory();
-    }
-  }, [type, user.id, isEditMode]);
-
   // --- SUBMIT ---
   const handleSubmit = async () => {
     if (type === 'Cuti' && (parseInt(user.sisaCuti) || 0) < 1) {
@@ -1528,13 +1483,11 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
         return;
     }
 
-    // Validasi Foto (Sekarang Sakit wajib foto kamera)
     if (isPhotoRequired && !isEditMode && !photo) { 
         alert(type === 'Sakit' ? 'Mohon ambil foto Surat Dokter menggunakan kamera.' : 'Foto Wajib untuk tipe absen ini.'); 
         return; 
     }
     
-    // Validasi Upload (Hanya jika tipe masuk UPLOAD_ALLOWED_TYPES)
     if (isUploadAllowed && !isEditMode && !fileLampiran) {
         alert('Mohon upload dokumen lampiran.');
         return;
@@ -1563,12 +1516,9 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
           lokasi: location ? `${location.lat}, ${location.lng}` : '-', 
           catatan: catatan, 
           foto: photo, 
-          
-          // Data File Upload (Jika ada)
           fileLampiran: fileLampiran, 
           fileName: fileName,
           fileMime: fileMime,
-
           ...intervalData,
           jamMulai: isShiftWorker && isClockIn ? shiftJamMulai : intervalData.jamMulai,
           jamSelesai: isShiftWorker && isClockIn ? shiftJamSelesai : intervalData.jamSelesai
@@ -1608,7 +1558,6 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
       {/* --- FORM CONTAINER --- */}
       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-4">
         
-        {/* SHIFT SELECTOR */}
         {isShiftWorker && isClockIn && !isEditMode && (
             <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
                 <label className="text-xs font-bold text-indigo-800 block mb-2 flex items-center gap-2">
@@ -1627,7 +1576,6 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
             </div>
         )}
 
-        {/* INTERVAL DATE INPUT */}
         {isIntervalType && (
             <div className="bg-blue-50 p-3 rounded-lg space-y-3 border border-blue-100">
                 <h4 className="font-bold text-blue-800 text-sm flex items-center gap-2"><Calendar className="w-4 h-4"/> Detail Waktu</h4>
@@ -1650,7 +1598,6 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
             </div>
         )}
 
-        {/* FILE UPLOAD (HANYA MUNCUL JIKA TYPE TERMASUK DI UPLOAD_ALLOWED_TYPES) */}
         {isUploadAllowed && (
             <div className="bg-orange-50 p-3 rounded-lg border border-orange-100 border-dashed">
                 <label className="text-xs font-bold text-orange-800 block mb-2 flex items-center gap-2">
@@ -1673,7 +1620,6 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
             </div>
         )}
 
-        {/* CAMERA SECTION */}
         {isPhotoRequired && (
           <>
             {!isEditMode && (
@@ -1691,25 +1637,18 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
                 
                 {photo && <img src={photo} alt="Preview Absensi" className="absolute inset-0 w-full h-full object-cover" />}
                 
-                {/* Tombol Shutter & Switch Camera */}
                 {cameraActive && (
                     <div className="absolute bottom-4 left-0 right-0 flex items-center justify-center gap-6">
-                         {/* Tombol Switch Camera */}
                          <button onClick={toggleCamera} className="bg-white/30 backdrop-blur-sm p-3 rounded-full hover:bg-white/50 transition text-white border border-white/50 shadow-sm">
                             <History className="w-5 h-5" /> 
                          </button>
-
-                         {/* Tombol Foto */}
                          <button onClick={takePhoto} className="bg-white rounded-full p-1 shadow-lg transform active:scale-95 transition">
                             <div className="w-14 h-14 bg-red-600 rounded-full border-4 border-white"></div>
                         </button>
-                        
-                         {/* Placeholder agar center */}
                          <div className="w-11"></div> 
                     </div>
                 )}
                 
-                {/* Overlay Status Kamera */}
                 {cameraActive && (
                     <div className="absolute top-4 right-4 bg-black/50 text-white text-[10px] px-2 py-1 rounded backdrop-blur-sm">
                         {facingMode === 'user' ? 'Kamera Depan' : 'Kamera Belakang'}
@@ -1725,7 +1664,6 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
           </>
         )}
         
-        {/* GPS */}
         {!isEditMode && isGpsRequired && (
             <div className="flex items-center gap-3 bg-blue-50 p-3 rounded-lg text-blue-800 border border-blue-100">
                 <MapPin className="text-red-500"/><span className="text-sm font-medium">{location ? `${location.lat}, ${location.lng}` : 'Mencari Lokasi...'}</span>
