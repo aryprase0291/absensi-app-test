@@ -2085,13 +2085,258 @@ function ChangePasswordScreen({ user, setView }) {
   );
 }
 
-// --- 9. DB ABSEN SCREEN (DATA MESIN) ---
+// --- 9. DB ABSEN SCREEN (DATA MESIN - UPDATED WITH FILTER) ---
+// function DbAbsenScreen({ user, setView }) {
+//   const [list, setList] = useState([]);
+//   const [loading, setLoading] = useState(true);
 
+//   // STATE BARU: Filter
+//   const [filterStart, setFilterStart] = useState('');
+//   const [filterEnd, setFilterEnd] = useState('');
+//   const [showFilter, setShowFilter] = useState(false);
+
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       setLoading(true);
+//       try {
+//         const res = await fetch(SCRIPT_URL, { 
+//             method: 'POST', 
+//             body: JSON.stringify({ 
+//                 action: 'get_db_absen', 
+//                 userId: user.id,
+//                 noPayroll: user.noPayroll 
+//             }) 
+//         });
+//         const data = await res.json();
+//         if (data.result === 'success') {
+//             setList(data.list);
+//         } else {
+//             alert(data.message);
+//         }
+//       } catch (e) {
+//         console.error(e);
+//         alert("Gagal memuat data mesin.");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+    
+//     if (user) fetchData();
+//   }, [user]);
+
+//   // LOGIC FILTERING DATA
+//   const filteredList = list.filter(item => {
+//     // Jika tidak ada filter tanggal, tampilkan semua
+//     if (!filterStart && !filterEnd) return true;
+
+//     try {
+//         const itemDate = new Date(item.tanggal).setHours(0, 0, 0, 0);
+//         const start = filterStart ? new Date(filterStart).setHours(0, 0, 0, 0) : null;
+//         const end = filterEnd ? new Date(filterEnd).setHours(23, 59, 59, 999) : null;
+
+//         // Cek range
+//         const matchStart = !start || itemDate >= start;
+//         const matchEnd = !end || itemDate <= end;
+
+//         return matchStart && matchEnd;
+//     } catch (e) {
+//         return true; // Jika format tanggal error, tetap tampilkan
+//     }
+//   });
+
+//   const getSymbolColor = (sym) => {
+//       if(!sym) return 'bg-gray-100 text-gray-600';
+//       const s = sym.toUpperCase();
+//       if(s === 'H' || s === 'A') return 'bg-green-100 text-green-700'; 
+//       if(s === 'T') return 'bg-red-100 text-red-700'; 
+//       return 'bg-blue-100 text-blue-700';
+//   };
+
+//   const translateDay = (dayName) => {
+//       if (!dayName) return '-';
+//       const map = { 'SUN': 'MINGGU', 'MON': 'SENIN', 'TUE': 'SELASA', 'WED': 'RABU', 'THU': 'KAMIS', 'FRI': 'JUMAT', 'SAT': 'SABTU' };
+//       const key = String(dayName).toUpperCase().substring(0, 3);
+//       return map[key] || dayName;
+//   };
+
+//   // Reset Filter
+//   const clearFilter = () => {
+//     setFilterStart('');
+//     setFilterEnd('');
+//   };
+
+//   return (
+//     <div className="p-4 h-full overflow-y-auto pb-20">
+//       <div className="flex items-center justify-between mb-4">
+//         <div className="flex items-center gap-2">
+//             <BackButton onClick={() => setView('dashboard')} />
+//             <h2 className="text-xl font-bold ml-2">Data Mesin</h2>
+//         </div>
+        
+//         {/* TOMBOL TOGGLE FILTER */}
+//         <button 
+//             onClick={() => setShowFilter(!showFilter)} 
+//             className={`p-2 rounded-lg border transition-colors ${showFilter ? 'bg-blue-100 text-blue-600 border-blue-300' : 'bg-white text-gray-500 border-gray-200'}`}
+//             title="Filter Tanggal"
+//         >
+//             <Filter className="w-5 h-5" />
+//         </button>
+//       </div>
+
+//       <div className="bg-indigo-50 border border-indigo-200 p-3 rounded-lg mb-4 text-xs text-indigo-800">
+//         <p className="font-bold flex items-center gap-1"><Info className="w-3 h-3"/> Informasi:</p>
+//         <p>Data ini sinkron langsung dari Mesin Fingerprint ID - <strong>{user.noPayroll}</strong>.</p>
+//       </div>
+
+//       {/* PANEL FILTER (MUNCUL JIKA TOMBOL FILTER DITEKAN) */}
+//       {showFilter && (
+//         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4 animate-in fade-in slide-in-from-top-2">
+//             <div className="flex justify-between items-center mb-2">
+//                 <h4 className="text-xs font-bold text-gray-700 flex items-center gap-2"><Calendar className="w-4 h-4"/> Filter Rentang Waktu</h4>
+//                 {(filterStart || filterEnd) && (
+//                     <button onClick={clearFilter} className="text-[10px] text-red-500 font-bold hover:underline">Reset</button>
+//                 )}
+//             </div>
+//             <div className="grid grid-cols-2 gap-3">
+//                 <div>
+//                     <label className="text-[10px] text-gray-400 block mb-1">Dari Tanggal</label>
+//                     <input 
+//                         type="date" 
+//                         className="w-full p-2 border rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+//                         value={filterStart}
+//                         onChange={(e) => setFilterStart(e.target.value)}
+//                     />
+//                 </div>
+//                 <div>
+//                     <label className="text-[10px] text-gray-400 block mb-1">Sampai Tanggal</label>
+//                     <input 
+//                         type="date" 
+//                         className="w-full p-2 border rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+//                         value={filterEnd}
+//                         onChange={(e) => setFilterEnd(e.target.value)}
+//                     />
+//                 </div>
+//             </div>
+//              <div className="mt-2 text-[10px] text-blue-600 font-medium text-right">
+//                 Menampilkan: {filteredList.length} Data
+//             </div>
+//         </div>
+//       )}
+
+//       {loading ? (
+//           <p className="text-center text-gray-500 mt-10 animate-pulse">Sedang sinkronisasi data mesin...</p>
+//       ) : (
+//         <div className="space-y-3">
+//             {filteredList.length === 0 && (
+//                 <div className="text-center py-10 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+//                     <p>Tidak ada data ditemukan.</p>
+//                     {(filterStart || filterEnd) && <p className="text-xs mt-1">Coba atur ulang filter tanggal.</p>}
+//                 </div>
+//             )}
+
+//             {filteredList.map((item, idx) => {
+//                 const keteranganMap = {
+//                     'T': 'Telat', 'O': 'Off', 'CB': 'Cuti Bersama', 'H': 'Hadir',
+//                     'PC': 'Pulang Cepat', 'Si': 'Tdk Absen Masuk', 'I': 'Ijin',
+//                     'So': 'Tdk Absen Pulang', 'A': 'Alpa', 'TPC': 'Telat, Pulang Cepat',
+//                     'TSo': 'Telat, Tdk Absen Pulang', 'TSi': 'Telat, Tdk Absen Masuk',
+//                     'AC': 'Alpa Lebih Cuti', 'C': 'Cuti', 'S': 'Sakit',
+//                     'SiPC': 'Tdk Absen Masuk, Pulang Cepat', 'DL': 'Dinas Luar',
+//                     'EO': 'Extra Ordinary', 'NF': 'Tidak Absen Mesin', 'SiSo': 'Tdk Absen Masuk'
+//                 };
+//                 const textKeterangan = keteranganMap[item.symbol] ? `(${keteranganMap[item.symbol]})` : '';
+
+//                 return (
+//                     <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+//                         <div className="flex justify-between items-start border-b border-gray-100 pb-2 mb-2">
+//                             <div>
+//                                 <p className="text-xs text-gray-500 font-bold uppercase">
+//                                     {translateDay(item.week)}
+//                                 </p>
+//                                 <h4 className="font-bold text-gray-800">{item.tanggal}</h4>
+//                             </div>
+//                             <div className="text-right">
+//                                  <span className={`text-xs font-bold px-2 py-1 rounded ${getSymbolColor(item.symbol)} block`}>
+//                                       {item.symbol || '-'} <br/>
+//                                       <span className="text-[10px] opacity-80 font-normal">{textKeterangan}</span>
+//                                  </span>
+//                             </div>
+//                         </div>
+                        
+//                         <div className="grid grid-cols-2 gap-y-2 text-sm">
+//                             <div>
+//                                 <p className="text-[10px] text-gray-400">Jam Masuk</p>
+//                                 <p className="font-medium font-bold text-blue-600">{formatTimeOnly(item.masuk)}</p>
+//                             </div>
+//                             <div>
+//                                 <p className="text-[10px] text-gray-400">Jam Pulang</p>
+//                                 <p className="font-medium font-bold text-blue-600">{formatTimeOnly(item.pulang)}</p>
+//                             </div>
+//                             <div>
+//                                 <p className="text-[10px] text-gray-400">Jam Kerja</p>
+//                                  <p className="font-medium">{item.jamKerja}</p>
+//                             </div>
+//                             <div>
+//                                 <p className="text-[10px] text-gray-400">Telat</p>
+//                                 <p className={`font-medium ${item.telat ? 'text-red-600' : 'text-gray-600'}`}>
+//                                 {formatTimeOnly(item.telat)} 
+//                                 </p>
+//                           </div>
+//                         </div>
+    
+//                         {item.waktuScan && (
+//                             <div className="mt-2 bg-gray-50 p-2 rounded border border-gray-100">
+//                                 <p className="text-[10px] text-gray-400 mb-1 flex items-center gap-1">
+//                                     <ScanFace className="w-3 h-3"/> Log Waktu Scan:
+//                                 </p>
+//                                 <p className="text-[10px] font-mono text-gray-600 break-words leading-tight">
+//                                     {String(item.waktuScan).split(' ').map(t => formatTimeOnly(t)).join(' ')}
+//                                 </p>
+//                             </div>
+//                         )}
+//                     </div>
+//                 );
+//             })}
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+// --- 9. DB ABSEN SCREEN (DATA MESIN - UPDATED WITH STATUS FILTER) ---
 function DbAbsenScreen({ user, setView }) {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ... (bagian useEffect fetch data tetap sama, tidak perlu diubah) ...
+  // STATE FILTER
+  const [filterStart, setFilterStart] = useState('');
+  const [filterEnd, setFilterEnd] = useState('');
+  const [filterStatus, setFilterStatus] = useState('All'); // State Baru untuk Filter Keterangan
+  const [showFilter, setShowFilter] = useState(false);
+
+  // DEFINISI MAP KETERANGAN (Dipindah ke atas agar bisa dipakai di Filter & List)
+  const KETERANGAN_MAP = {
+      'H': 'Hadir',
+      'T': 'Telat',
+      'O': 'Off / Libur',
+      'CB': 'Cuti Bersama',
+      'PC': 'Pulang Cepat',
+      'Si': 'Tdk Absen Masuk',
+      'So': 'Tdk Absen Pulang',
+      'I': 'Ijin',
+      'S': 'Sakit',
+      'C': 'Cuti',
+      'A': 'Alpa',
+      'DL': 'Dinas Luar',
+      'TPC': 'Telat, Pulang Cepat',
+      'TSo': 'Telat, Tdk Absen Pulang',
+      'TSi': 'Telat, Tdk Absen Masuk',
+      'SiSo': 'Tdk Absen Masuk & Pulang',
+      'SiPC': 'Tdk Absen Masuk, Pulang Cepat',
+      'AC': 'Alpa Lebih Cuti',
+      'EO': 'Extra Ordinary',
+      'NF': 'Tidak Absen Mesin'
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -2121,37 +2366,67 @@ function DbAbsenScreen({ user, setView }) {
     if (user) fetchData();
   }, [user]);
 
-  // Helper warna untuk symbol (tetap sama)
+  // LOGIC FILTERING DATA (TANGGAL + STATUS)
+  const filteredList = list.filter(item => {
+    // 1. Filter Tanggal
+    let matchDate = true;
+    if (filterStart || filterEnd) {
+        try {
+            const itemDate = new Date(item.tanggal).setHours(0, 0, 0, 0);
+            const start = filterStart ? new Date(filterStart).setHours(0, 0, 0, 0) : null;
+            const end = filterEnd ? new Date(filterEnd).setHours(23, 59, 59, 999) : null;
+            matchDate = (!start || itemDate >= start) && (!end || itemDate <= end);
+        } catch (e) { matchDate = true; }
+    }
+
+    // 2. Filter Status Keterangan
+    let matchStatus = true;
+    if (filterStatus !== 'All') {
+        // Bandingkan symbol (contoh: 'T') dengan filterStatus
+        matchStatus = item.symbol === filterStatus;
+    }
+
+    return matchDate && matchStatus;
+  });
+
   const getSymbolColor = (sym) => {
       if(!sym) return 'bg-gray-100 text-gray-600';
       const s = sym.toUpperCase();
       if(s === 'H' || s === 'A') return 'bg-green-100 text-green-700'; 
-      if(s === 'T') return 'bg-red-100 text-red-700'; 
+      if(s === 'T' || s.includes('T')) return 'bg-red-100 text-red-700'; 
       return 'bg-blue-100 text-blue-700';
   };
 
-  // --- [BARU] FUNGSI TERJEMAH HARI ---
   const translateDay = (dayName) => {
       if (!dayName) return '-';
-      const map = {
-          'SUN': 'MINGGU',
-          'MON': 'SENIN',
-          'TUE': 'SELASA',
-          'WED': 'RABU',
-          'THU': 'KAMIS',
-          'FRI': 'JUMAT',
-          'SAT': 'SABTU'
-      };
-      // Mengambil 3 huruf pertama dan uppercase untuk dicocokkan
+      const map = { 'SUN': 'MINGGU', 'MON': 'SENIN', 'TUE': 'SELASA', 'WED': 'RABU', 'THU': 'KAMIS', 'FRI': 'JUMAT', 'SAT': 'SABTU' };
       const key = String(dayName).toUpperCase().substring(0, 3);
       return map[key] || dayName;
   };
 
+  // Reset Semua Filter
+  const clearFilter = () => {
+    setFilterStart('');
+    setFilterEnd('');
+    setFilterStatus('All');
+  };
+
   return (
     <div className="p-4 h-full overflow-y-auto pb-20">
-      <div className="flex items-center gap-2 mb-4">
-        <BackButton onClick={() => setView('dashboard')} />
-        <h2 className="text-xl font-bold ml-2">Data Mesin Absensi</h2>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+            <BackButton onClick={() => setView('dashboard')} />
+            <h2 className="text-xl font-bold ml-2">Data Mesin</h2>
+        </div>
+        
+        {/* TOMBOL TOGGLE FILTER */}
+        <button 
+            onClick={() => setShowFilter(!showFilter)} 
+            className={`p-2 rounded-lg border transition-colors ${showFilter ? 'bg-blue-100 text-blue-600 border-blue-300' : 'bg-white text-gray-500 border-gray-200'}`}
+            title="Filter Data"
+        >
+            <Filter className="w-5 h-5" />
+        </button>
       </div>
 
       <div className="bg-indigo-50 border border-indigo-200 p-3 rounded-lg mb-4 text-xs text-indigo-800">
@@ -2159,57 +2434,91 @@ function DbAbsenScreen({ user, setView }) {
         <p>Data ini sinkron langsung dari Mesin Fingerprint ID - <strong>{user.noPayroll}</strong>.</p>
       </div>
 
+      {/* PANEL FILTER KOMPLIT */}
+      {showFilter && (
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4 animate-in fade-in slide-in-from-top-2">
+            <div className="flex justify-between items-center mb-3">
+                <h4 className="text-xs font-bold text-gray-700 flex items-center gap-2"><Filter className="w-4 h-4"/> Filter Data</h4>
+                {(filterStart || filterEnd || filterStatus !== 'All') && (
+                    <button onClick={clearFilter} className="text-[10px] text-red-500 font-bold hover:underline flex items-center gap-1">
+                        <Trash2 className="w-3 h-3"/> Reset Filter
+                    </button>
+                )}
+            </div>
+            
+            <div className="space-y-3">
+                {/* Filter Tanggal */}
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="text-[10px] text-gray-400 block mb-1">Dari Tanggal</label>
+                        <input 
+                            type="date" 
+                            className="w-full p-2 border rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            value={filterStart}
+                            onChange={(e) => setFilterStart(e.target.value)}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-[10px] text-gray-400 block mb-1">Sampai Tanggal</label>
+                        <input 
+                            type="date" 
+                            className="w-full p-2 border rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                            value={filterEnd}
+                            onChange={(e) => setFilterEnd(e.target.value)}
+                        />
+                    </div>
+                </div>
+
+                {/* Filter Keterangan Map */}
+                <div>
+                    <label className="text-[10px] text-gray-400 block mb-1">Status / Keterangan</label>
+                    <select 
+                        className="w-full p-2 border rounded-lg text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                    >
+                        <option value="All">-- Semua Status --</option>
+                        {/* Generate Option dari KETERANGAN_MAP */}
+                        {Object.entries(KETERANGAN_MAP).map(([key, label]) => (
+                            <option key={key} value={key}>
+                                {label} ({key})
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+             <div className="mt-3 pt-2 border-t text-[10px] text-blue-600 font-medium text-right">
+                Ditemukan: <strong>{filteredList.length}</strong> Data
+            </div>
+        </div>
+      )}
+
       {loading ? (
           <p className="text-center text-gray-500 mt-10 animate-pulse">Sedang sinkronisasi data mesin...</p>
       ) : (
         <div className="space-y-3">
-            {list.length === 0 && (
-                <div className="text-center py-10 text-gray-400">
-                    <p>Tidak ada data ditemukan untuk ID {user.noPayroll}.</p>
+            {filteredList.length === 0 && (
+                <div className="text-center py-10 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                    <p>Tidak ada data ditemukan.</p>
+                    {(filterStart || filterEnd || filterStatus !== 'All') && <p className="text-xs mt-1">Coba ubah filter pencarian Anda.</p>}
                 </div>
             )}
 
-            {list.map((item, idx) => {
-                // 1. KITA DEFINISIKAN KAMUS KETERANGAN DI SINI (Di dalam kurung kurawal)
-                const keteranganMap = {
-                    'T': 'Telat',
-                    'O': 'Off',
-                    'CB': 'Cuti Bersama',
-                    'H': 'Hadir',
-                    'PC': 'Pulang Cepat',
-                    'Si': 'Tdk Absen Masuk',
-                    'I': 'Ijin',
-                    'So': 'Tdk Absen Pulang',
-                    'A': 'Alpa',
-                    'TPC': 'Telat, Pulang Cepat',
-                    'TSo': 'Telat, Tdk Absen Pulang',
-                    'TSi': 'Telat, Tdk Absen Masuk',
-                    'AC': 'Alpa Lebih Cuti',
-                    'C': 'Cuti',
-                    'S': 'Sakit',
-                    'SiPC': 'Tdk Absen Masuk, Pulang Cepat',
-                    'DL': 'Dinas Luar',
-                    'EO': 'Extra Ordinary',
-                    'NF': 'Tidak Absen Mesin',
-                    'SiSo': 'Tdk Absen Masuk'
-                };
+            {filteredList.map((item, idx) => {
+                // Ambil label dari map global yang sudah dibuat di atas
+                const textKeterangan = KETERANGAN_MAP[item.symbol] ? `(${KETERANGAN_MAP[item.symbol]})` : '';
 
-                // Ambil teks keterangan berdasarkan symbol, jika tidak ada, kosongkan
-                const textKeterangan = keteranganMap[item.symbol] ? `(${keteranganMap[item.symbol]})` : '';
-
-                // 2. BARU KITA RETURN TAMPILANNYA
                 return (
-                    <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start border-b border-gray-100 pb-2 mb-2">
                             <div>
-                                {/* Memanggil fungsi translateDay yang sudah Anda buat sebelumnya */}
                                 <p className="text-xs text-gray-500 font-bold uppercase">
                                     {translateDay(item.week)}
                                 </p>
                                 <h4 className="font-bold text-gray-800">{item.tanggal}</h4>
                             </div>
                             <div className="text-right">
-                                 {/* TAMPILKAN KODE + KETERANGAN */}
                                  <span className={`text-xs font-bold px-2 py-1 rounded ${getSymbolColor(item.symbol)} block`}>
                                       {item.symbol || '-'} <br/>
                                       <span className="text-[10px] opacity-80 font-normal">{textKeterangan}</span>
@@ -2257,6 +2566,7 @@ function DbAbsenScreen({ user, setView }) {
   );
 }
 
+
 // Pastikan helper formatTimeOnly tersedia
 function formatTimeOnly(val) {
     if (!val || val === '-' || val === 'FALSE') return '-';
@@ -2279,6 +2589,5 @@ function formatTimeOnly(val) {
     if (typeof val === 'string' && val.includes(':')) {
         return val.substring(0, 5);
     }
-
     return val;
 }
