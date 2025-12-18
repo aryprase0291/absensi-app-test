@@ -97,7 +97,7 @@ export default function AppAbsensi() {
             <div className="bg-blue-600 p-4 text-white flex justify-between items-center shadow-md z-10 relative">
             <div className="flex items-center gap-2">
                 <Activity className="w-6 h-6" />
-                <h1 className="font-bold text-lg">e-Absensi Online</h1>
+                <h1 className="font-bold text-lg">Absensi Online</h1>
             </div>
             {user && (
                 <div className="flex items-center gap-3">
@@ -2442,7 +2442,7 @@ function LoginScreen({ onLogin }) {
             </div>
           </div>
           
-          <h2 className="text-2xl font-bold text-slate-800 mt-5 tracking-tight">e-Absensi Online</h2>
+          <h2 className="text-2xl font-bold text-slate-800 mt-5 tracking-tight">Absensi Online</h2>
           <p className="text-slate-500 text-xs mt-1 text-center px-4">
             Silakan Anda masuk ke sistem.
         </p>
@@ -2500,7 +2500,7 @@ function LoginScreen({ onLogin }) {
         
         <div className="mt-6 text-center">
           <p className="text-[11px] text-gray-400">
-            &copy; {new Date().getFullYear()} e-Absensi Online | System By : IT SUPPORT
+            &copy; {new Date().getFullYear()} Absensi Online | by : IT SUPPORT
           </p>
         </div>
       </div>
