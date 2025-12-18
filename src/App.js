@@ -1085,7 +1085,7 @@ function RemarkScreen({ user, setView }) {
 
 //     // Validasi Foto (Sekarang Sakit wajib foto kamera)
 //     if (isPhotoRequired && !isEditMode && !photo) { 
-//         alert(type === 'Sakit' ? 'Mohon ambil foto Surat Dokter menggunakan kamera.' : 'Foto Wajib untuk tipe absen ini.'); 
+//         alert(type === 'Sakit' ? 'Mohon ambil foto Surat Dokter menggunakan kamera.' : 'Foto Wajib untuk form absen ini.'); 
 //         return; 
 //     }
     
@@ -1484,7 +1484,7 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
     }
 
     if (isPhotoRequired && !isEditMode && !photo) { 
-        alert(type === 'Sakit' ? 'Mohon ambil foto Surat Dokter menggunakan kamera.' : 'Foto Wajib untuk tipe absen ini.'); 
+        alert(type === 'Sakit' ? 'Mohon ambil foto Surat Dokter menggunakan kamera.' : 'Foto Wajib untuk form absen ini.'); 
         return; 
     }
     
@@ -1892,7 +1892,7 @@ function HistoryScreen({ user, setView, setEditItem, masterData }) {
     const detailTanggal = item.tglMulai && item.tglMulai !== '-' 
         ? `${formatDateIndo(item.tglMulai)} s/d ${formatDateIndo(item.tglSelesai)}`
         : formatDateIndo(item.waktu);
-    const message = `Kirim email pengajuan approval untuk:\n\nTipe: ${item.tipe}\nTanggal: ${detailTanggal}\n\nLanjutkan kirim ke Kepala Divisi?`;
+    const message = `Kirim email pengajuan approval untuk:\n\nForm: ${item.tipe}\nTanggal: ${detailTanggal}\n\nLanjutkan kirim ke Kepala Divisi?`;
     if (!window.confirm(message)) return;
     setSendingEmail(true);
     try {
@@ -2007,7 +2007,7 @@ function HistoryScreen({ user, setView, setEditItem, masterData }) {
                                 <th className="px-4 py-3 text-center w-12 bg-slate-100">No.</th>
                                 <th className="px-4 py-3 bg-slate-100">No Payroll</th>
                                 <th className="px-4 py-3 bg-slate-100">Nama</th>
-                                <th className="px-4 py-3 bg-slate-100">Tipe</th>
+                                <th className="px-4 py-3 bg-slate-100">Form</th>
                                 <th className="px-4 py-3 bg-slate-100">Waktu Input</th>
                                 <th className="px-4 py-3 bg-slate-100">Periode / Jam</th>
                                 <th className="px-4 py-3 bg-slate-100">Catatan</th>
@@ -2113,9 +2113,9 @@ function HistoryScreen({ user, setView, setEditItem, masterData }) {
           <div><label className="text-[10px] text-gray-400">Sampai Tanggal</label><input type="date" className="w-full border rounded p-1 text-sm" value={filterEnd} onChange={e => setFilterEnd(e.target.value)} /></div> 
         </div>
         <div className="mb-3">
-            <label className="text-[10px] text-gray-400">Tipe Absen</label>
+            <label className="text-[10px] text-gray-400">Form Absen</label>
             <select className="w-full border rounded p-1.5 text-sm bg-white" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-                {uniqueTypes.map((t, i) => ( <option key={i} value={t}>{t === 'All' ? 'Semua Tipe' : t}</option> ))}
+                {uniqueTypes.map((t, i) => ( <option key={i} value={t}>{t === 'All' ? 'Semua Form' : t}</option> ))}
             </select>
         </div>
         <div className="flex gap-2"> 
@@ -2451,7 +2451,7 @@ function LoginScreen({ onLogin }) {
         {/* Form Login */}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-1">
-            <label className="text-xs font-bold text-gray-600 ml-1">Username</label>
+            <label className="text-xs font-bold text-gray-600 ml-1">ID FingerPrint</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Smartphone className="h-5 w-5 text-gray-400" />
@@ -2461,7 +2461,7 @@ function LoginScreen({ onLogin }) {
                 value={username} 
                 onChange={e => setUsername(e.target.value)} 
                 className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors bg-gray-50/50" 
-                placeholder="Masukkan ID / Username" 
+                placeholder="Masukkan ID FingerPrint Anda" 
                 required 
               />
             </div>
