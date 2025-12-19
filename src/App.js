@@ -1319,9 +1319,24 @@ function ApprovalScreen({ user, setView }) {
     } catch (e) { alert('Terjadi kesalahan koneksi'); }
   };
 
-  const formatDateIndo = (dateString) => { if (!dateString || dateString === '-') return '-';
-    try { const date = new Date(dateString); return date.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
-    } catch (e) { return dateString; } };
+  // const formatDateIndo = (dateString) => { if (!dateString || dateString === '-') return '-';
+  //   try { const date = new Date(dateString); return date.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
+  //   } catch (e) { return dateString; } };
+
+  const formatDateIndo = (dateString) => { 
+  if (!dateString || dateString === '-') return '-';
+  try { 
+    const date = new Date(dateString); 
+    // Menggunakan Intl.DateTimeFormat untuk format DD-MM-YYYY
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}-${month}-${year}`;
+  } catch (e) { 
+    return dateString; 
+  } 
+};
 
   return (
     <div className="p-4 h-full overflow-y-auto pb-20">
