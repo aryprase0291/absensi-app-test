@@ -51,6 +51,7 @@ export default function AppAbsensi() {
     setView('login');
     localStorage.removeItem('app_user');
     localStorage.removeItem('app_master_data');
+    sessionStorage.removeItem('announcement_shown');
     if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
   }, []);
 
@@ -166,6 +167,10 @@ function Dashboard({ user, setUser, setView, masterData }) {
 
   useEffect(() => {
     const fetchNews = async () => {
+      // CEK APAKAH SUDAH PERNAH DITAMPILKAN DALAM SESI INI
+      const hasBeenShown = sessionStorage.getItem('announcement_shown');
+      if (hasBeenShown) return; // Jika sudah pernah, jangan fetch/tampilkan lagi
+
       try {
         const res = await fetch(SCRIPT_URL, { 
           method: 'POST', 
@@ -178,8 +183,8 @@ function Dashboard({ user, setUser, setView, masterData }) {
         }
       } catch (e) { console.error("Gagal load pengumuman"); }
     };
-    if (user) fetchNews();
-  }, [user]);
+    fetchNews();
+  }, []);
 
   // Validasi user harus di atas return utama
   if (!user) return null; 
@@ -377,10 +382,13 @@ function Dashboard({ user, setUser, setView, masterData }) {
               </div>
               
               <button 
-                onClick={() => setShowNews(false)}
-                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold shadow-lg shadow-slate-200 active:scale-95 transition-all flex items-center justify-center gap-2"
+                onClick={() => {
+                  setShowNews(false);
+                  // TANDAI BAHWA PENGUMUMAN SUDAH DILIHAT DALAM SESI INI
+                  sessionStorage.setItem('announcement_shown', 'true');
+                }}
+                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold shadow-lg"
               >
-                <Check className="w-5 h-5" />
                 Tutup
               </button>
             </div>
