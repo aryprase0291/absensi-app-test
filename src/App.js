@@ -882,7 +882,7 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
   const NO_GPS_TYPES = ['Ijin', 'Cuti', 'Dinas Luar', 'Sakit', 'Cuti EO', 'Tukar Shift'];
   const NO_TIME_TYPES = ['Cuti', 'Dinas Luar', 'Sakit', 'Cuti EO']; 
   const H3_REQUIRED_TYPES = ['Ijin', 'Tukar Shift']; 
-  const UPLOAD_ALLOWED_TYPES = ['Dinas Luar']; 
+  const UPLOAD_ALLOWED_TYPES = ['Dinas Luar', 'Cuti', 'Cuti EO']; 
 
   const isPhotoRequired = PHOTO_REQUIRED_TYPES.includes(type);
   const isGpsRequired = !NO_GPS_TYPES.includes(type);
@@ -912,6 +912,9 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
   const [fileLampiran, setFileLampiran] = useState(null);
   const [fileName, setFileName] = useState('');
   const [fileMime, setFileMime] = useState('');
+  
+  // STATE BARU: Pilihan melampirkan file (Default: True untuk Dinas Luar, False untuk Cuti/EO agar opsional)
+  const [isUploading, setIsUploading] = useState(type === 'Dinas Luar');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [minDateLimit, setMinDateLimit] = useState('');
@@ -1079,8 +1082,9 @@ const handleSubmit = async () => {
         return; 
     }
     
-    if (isUploadAllowed && !isEditMode && !fileLampiran) {
-        alert('Mohon upload dokumen lampiran.');
+    // PERBAIKAN VALIDASI: Hanya wajib jika user mengaktifkan isUploading
+    if (isUploadAllowed && isUploading && !isEditMode && !fileLampiran) {
+        alert('Mohon pilih file lampiran atau matikan pilihan lampiran.');
         return;
     }
 
@@ -1107,9 +1111,10 @@ const handleSubmit = async () => {
           lokasi: location ? `${location.lat}, ${location.lng}` : '-', 
           catatan: catatan, 
           foto: photo, 
-          fileLampiran: fileLampiran, 
-          fileName: fileName,
-          fileMime: fileMime,
+          // Jika isUploading false, kirim null meskipun state fileLampiran ada isinya
+          fileLampiran: isUploading ? fileLampiran : null, 
+          fileName: isUploading ? fileName : '',
+          fileMime: isUploading ? fileMime : '',
           ...intervalData,
           jamMulai: isShiftWorker && isClockIn ? shiftJamMulai : intervalData.jamMulai,
           jamSelesai: isShiftWorker && isClockIn ? shiftJamSelesai : intervalData.jamSelesai
@@ -1190,24 +1195,46 @@ const handleSubmit = async () => {
         )}
 
         {isUploadAllowed && (
-            <div className="bg-orange-50 p-3 rounded-lg border border-orange-100 border-dashed">
-                <label className="text-xs font-bold text-orange-800 block mb-2 flex items-center gap-2">
-                    <FileIcon className="w-4 h-4" /> Upload Dokumen (Bukti)
-                </label>
-                <input 
-                    type="file" 
-                    id="lampiranInput"
-                    accept="image/*,.pdf" 
-                    className="hidden" 
-                    onChange={handleFileChange}
-                />
-                <label htmlFor="lampiranInput" className="cursor-pointer w-full flex flex-col items-center justify-center p-4 bg-white border border-orange-200 rounded-lg hover:bg-orange-100 transition">
-                    <Upload className="w-6 h-6 text-orange-500 mb-1" />
-                    <span className="text-xs font-bold text-gray-600">
-                        {fileName ? fileName : "Klik untuk Upload File"}
-                    </span>
-                    <span className="text-[9px] text-gray-400 mt-1">(Max 5MB - Gambar/PDF)</span>
-                </label>
+            <div className="space-y-3">
+                {/* TOMBOL PILIHAN: Upload atau Tidak */}
+                <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-2">
+                        <FileIcon className="w-4 h-4 text-gray-500" />
+                        <span className="text-xs font-bold text-gray-700">Upload Lampiran</span>
+                    </div>
+                    <button 
+                        type="button"
+                        onClick={() => {
+                            setIsUploading(!isUploading);
+                            if (isUploading) { setFileLampiran(null); setFileName(''); }
+                        }}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isUploading ? 'bg-blue-600' : 'bg-gray-300'}`}
+                    >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isUploading ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                </div>
+
+                {isUploading && (
+                    <div className="bg-orange-50 p-3 rounded-lg border border-orange-100 border-dashed animate-pulse-subtle">
+                        <label className="text-xs font-bold text-orange-800 block mb-2 flex items-center gap-2">
+                             Pilih File (Wajib jika opsi aktif)
+                        </label>
+                        <input 
+                            type="file" 
+                            id="lampiranInput"
+                            accept="image/*,.pdf" 
+                            className="hidden" 
+                            onChange={handleFileChange}
+                        />
+                        <label htmlFor="lampiranInput" className="cursor-pointer w-full flex flex-col items-center justify-center p-4 bg-white border border-orange-200 rounded-lg hover:bg-orange-100 transition">
+                            <Upload className="w-6 h-6 text-orange-500 mb-1" />
+                            <span className="text-xs font-bold text-gray-600 text-center">
+                                {fileName ? fileName : "Klik untuk Upload File"}
+                            </span>
+                            <span className="text-[9px] text-gray-400 mt-1">(Max 5MB - Gambar/PDF)</span>
+                        </label>
+                    </div>
+                )}
             </div>
         )}
 
