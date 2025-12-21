@@ -126,9 +126,11 @@ export default function AppAbsensi() {
           {view === 'approval' && <ApprovalScreen user={user} setView={setView} />}
           {view === 'ganti_password' && <ChangePasswordScreen user={user} setView={setView} />}
           {view === 'remark' && <RemarkScreen user={user} setView={setView} />}
-          
+
           {/* MENU BARU: Input Shift (Updated) */}
           {view === 'input_shift' && <ShiftScheduleScreen user={user} setView={setView} masterData={masterData} />}
+        
+        
         </div>
       </div>
     </div>
@@ -139,6 +141,8 @@ export default function AppAbsensi() {
 function Dashboard({ user, setUser, setView, masterData }) { 
   const [time, setTime] = useState(new Date());
   const [stats, setStats] = useState({}); 
+  const [showNews, setShowNews] = useState(false);
+  const [newsContent, setNewsContent] = useState(null);
   
   useEffect(() => { 
     const timer = setInterval(() => setTime(new Date()), 1000); 
@@ -160,7 +164,26 @@ function Dashboard({ user, setUser, setView, masterData }) {
     if (user) fetchStats(); 
   }, [user]);
 
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const res = await fetch(SCRIPT_URL, { 
+          method: 'POST', 
+          body: JSON.stringify({ action: 'get_latest_announcement' }) 
+        });
+        const data = await res.json();
+        if (data.result === 'success' && data.data) {
+          setNewsContent(data.data);
+          setShowNews(true); 
+        }
+      } catch (e) { console.error("Gagal load pengumuman"); }
+    };
+    if (user) fetchNews();
+  }, [user]);
+
+  // Validasi user harus di atas return utama
   if (!user) return null; 
+
   const availableMenus = masterData.menus || []; 
   const allowedMenus = user.akses && user.akses.length > 0 ? availableMenus.filter(item => user.akses.includes(item.value)) : availableMenus; 
   
@@ -328,6 +351,43 @@ function Dashboard({ user, setUser, setView, masterData }) {
             ) 
         })} 
       </div> 
+
+      {/* --- PINDAHKAN MODAL KE SINI (DI DALAM RETURN) --- */}
+      {showNews && newsContent && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden transform animate-in zoom-in-95 duration-300">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white relative">
+              <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+              <div className="flex items-center gap-3 mb-1">
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <MessageSquare className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-bold text-lg tracking-tight">INFORMASI</h3>
+              </div>
+              <p className="text-blue-100 text-[10px] uppercase tracking-widest font-medium">
+                {newsContent.waktu}
+              </p>
+            </div>
+            
+            <div className="p-6">
+              <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 mb-6">
+                <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap italic">
+                  "{newsContent.isi}"
+                </p>
+              </div>
+              
+              <button 
+                onClick={() => setShowNews(false)}
+                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold shadow-lg shadow-slate-200 active:scale-95 transition-all flex items-center justify-center gap-2"
+              >
+                <Check className="w-5 h-5" />
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
         @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
       `}</style>
@@ -1324,22 +1384,49 @@ function ApprovalScreen({ user, setView }) {
 
   useEffect(() => { fetchApprovalList(); }, [fetchApprovalList]);
 
-  const handleDecision = async (uuid, decision, namaUser) => {
-    const actionText = decision === 'approve' ? 'Menyetujui' : 'Menolak';
-    if (!window.confirm(`Yakin ingin ${actionText} pengajuan dari ${namaUser}?`)) return;
+const handleDecision = async (uuid, decision, namaUser) => {
+    const isReject = decision === 'reject';
+    const actionText = isReject ? 'Menolak' : 'Menyetujui';
+    
+    // 1. Munculkan Prompt Alasan
+    const pesanPrompt = isReject 
+        ? `Alasan PENOLAKAN untuk ${namaUser} (Wajib diisi):` 
+        : `Catatan PERSETUJUAN untuk ${namaUser} (Opsional):`;
+        
+    const alasanInput = window.prompt(pesanPrompt, "");
+
+    // 2. Validasi
+    if (alasanInput === null) return; // Klik Batal di prompt
+    if (isReject && alasanInput.trim() === "") {
+        alert("Gagal! Anda wajib memberikan alasan jika menolak pengajuan.");
+        return;
+    }
+
+    if (!window.confirm(`Yakin ingin ${actionText} pengajuan ini?`)) return;
+
     try {
-      const res = await fetch(SCRIPT_URL, { 
-        method: 'POST', 
-        body: JSON.stringify({ action: 'process_approval', uuid, decision, approverName: user.nama }) 
-      });
-      const data = await res.json();
-      if (data.result === 'success') { 
-          alert(data.message);
-          fetchApprovalList(); 
-      } 
-      else { alert(data.message); }
-    } catch (e) { alert('Terjadi kesalahan koneksi'); }
-  };
+        const res = await fetch(SCRIPT_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ 
+                action: 'process_approval', 
+                uuid, 
+                decision, 
+                approverName: user.nama,
+                alasan: alasanInput.trim() // Kirim alasan ke backend
+            }) 
+        }).then(r => r.json());
+
+        if (res.result === 'success') { 
+            alert(res.message);
+            fetchApprovalList(); 
+        } else {
+            alert(res.message);
+        }
+    } catch (e) {
+        alert('Terjadi kesalahan koneksi');
+    }
+};
+
   const formatDateIndo = (dateString) => { 
   if (!dateString || dateString === '-') return '-';
   try { 
@@ -1802,42 +1889,37 @@ function AdminPanel({ user, setView, masterData }) {
   const [activeTab, setActiveTab] = useState('user');
   const [loading, setLoading] = useState(false);
   
-  // State User Data
+  // State Baru: Untuk menampung teks pengumuman HRD
+  const [newsInput, setNewsInput] = useState('');
+
+  // State User Data (Tetap)
   const [userData, setUserData] = useState({ 
     username: '', password: '', nama: '', email: '', 
     divisi: 'Staff', role: 'karyawan', akses: [], 
     noPayroll: '', sisaCuti: '', perusahaan: '', 
     statusKaryawan: '', emailAtasan: '',
-    lokasi: 'Surabaya' // Default awal
+    lokasi: 'Surabaya' 
   });
 
   const [masterInput, setMasterInput] = useState({ kategori: 'Menu', value: '', label: '' });
 
-  // --- [BARU] DAFTAR LOKASI MASTER ---
-  // Sesuaikan daftar ini dengan kebutuhan perusahaan Anda
   const LIST_LOKASI = [
       'Surabaya', 'Jakarta', 'Semarang', 'Cilegon', 'Citeureup', 
       'Makassar', 'Balikpapan', 'Medan', 'All'
   ];
 
-  // --- [BARU] HANDLER UNTUK LOKASI (MULTI SELECT) ---
   const handleLocationChange = (loc) => {
-     // Ambil lokasi saat ini, pisahkan dengan koma menjadi array
      let currentLocs = userData.lokasi ? userData.lokasi.split(',').map(l=>l.trim()).filter(l=>l!=='') : [];
-     
      if (currentLocs.includes(loc)) {
-         // Jika diklik dan sudah ada -> Hapus (Uncheck)
          currentLocs = currentLocs.filter(l => l !== loc);
      } else {
-         // Jika diklik dan belum ada -> Tambah (Check)
          if(loc === 'All') {
-             currentLocs = ['All']; // Jika pilih All, reset yang lain jadi All saja
+             currentLocs = ['All']; 
          } else {
-            currentLocs = currentLocs.filter(l => l !== 'All'); // Jika pilih kota, hapus 'All'
+            currentLocs = currentLocs.filter(l => l !== 'All');
             currentLocs.push(loc);
          }
      }
-     // Gabungkan kembali menjadi string dengan pemisah koma
      setUserData({ ...userData, lokasi: currentLocs.join(', ') });
   };
 
@@ -1893,6 +1975,33 @@ function AdminPanel({ user, setView, masterData }) {
     } catch(e) { alert('Error'); } finally { setLoading(false); } 
   };
 
+  // --- HANDLER BARU: Untuk Mengirim Pengumuman HRD ---
+  const handleAddAnnouncement = async () => {
+    if (!newsInput.trim()) return alert("Isi informasi tidak boleh kosong!");
+    setLoading(true);
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ 
+            action: 'tambah_announcement', // Sesuai dengan aksi di GAS 
+            roleRequester: user.role,       // Untuk validasi HRD/Admin 
+            isi: newsInput                 // Isi pesan pengumuman [cite: 1758]
+        })
+      }).then(r => r.json());
+      
+      if (res.result === 'success') {
+        alert("Pengumuman berhasil diterbitkan!");
+        setNewsInput(''); // Reset field input
+      } else {
+        alert(res.message);
+      }
+    } catch (e) {
+      alert("Gagal koneksi ke server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="p-4 h-full overflow-y-auto pb-20">
       <div className="flex items-center gap-2 mb-4">
@@ -1900,14 +2009,18 @@ function AdminPanel({ user, setView, masterData }) {
         <h2 className="text-xl font-bold ml-2">Admin Panel</h2>
       </div>
 
+      {/* --- NAVIGASI TAB: Ditambahkan Tombol Update HRD --- */}
       <div className="flex gap-2 mb-6 bg-gray-200 p-1 rounded-lg">
         <button onClick={() => setActiveTab('user')} className={`flex-1 py-2 text-sm font-bold rounded-md ${activeTab === 'user' ? 'bg-white shadow' : 'text-gray-500'}`}>Tambah User</button>
         {user.role === 'admin' && (
             <button onClick={() => setActiveTab('master')} className={`flex-1 py-2 text-sm font-bold rounded-md ${activeTab === 'master' ? 'bg-white shadow' : 'text-gray-500'}`}>Tambah Master Data</button>
         )}
+        {/* Tombol Tab Update HRD */}
+        <button onClick={() => setActiveTab('news')} className={`flex-1 py-2 text-sm font-bold rounded-md ${activeTab === 'news' ? 'bg-white shadow' : 'text-gray-500'}`}>Update HRD</button>
       </div>
 
-      {activeTab === 'user' ? (
+      {/* --- KONTEN TAB: TAMBAH USER (Tetap) --- */}
+      {activeTab === 'user' && (
         <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
           <form onSubmit={handleAddUser} className="space-y-4">
             <div className="grid grid-cols-2 gap-2">
@@ -1931,8 +2044,6 @@ function AdminPanel({ user, setView, masterData }) {
               <input type="text" className="w-full p-2 border rounded" value={userData.noPayroll} onChange={e => setUserData({...userData, noPayroll: e.target.value})} placeholder="No Payroll" />
               <input type="number" className="w-full p-2 border rounded" value={userData.sisaCuti} onChange={e => setUserData({...userData, sisaCuti: e.target.value})} placeholder="Sisa Cuti Awal" />
             </div>
-            
-            {/* --- UPDATE: LAYOUT INPUT --- */}
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="text-xs text-gray-500 block mb-1">Divisi</label>
@@ -1941,13 +2052,10 @@ function AdminPanel({ user, setView, masterData }) {
                   {masterData.divisions.length === 0 && <option>Staff</option>}
                 </select>
               </div>
-
-              {/* --- UPDATE: GANTI INPUT LOKASI JADI CHECKBOX --- */}
               <div className="bg-gray-50 p-3 rounded border border-gray-200">
                 <label className="text-xs font-bold text-gray-700 block mb-2">Akses Lokasi (Bisa Pilih Lebih dari 1)</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {LIST_LOKASI.map((loc) => {
-                    // Logic cek apakah checkbox dicentang
                     const isChecked = userData.lokasi && userData.lokasi.split(',').map(l=>l.trim()).includes(loc);
                     return (
                         <label key={loc} className="flex items-center gap-2 text-xs cursor-pointer bg-white p-2 rounded border hover:bg-blue-50 transition-colors">
@@ -1966,9 +2074,7 @@ function AdminPanel({ user, setView, masterData }) {
                     Data tersimpan: <strong>{userData.lokasi || '-'}</strong>
                 </p>
               </div>
-              {/* --- END UPDATE LOKASI --- */}
             </div>
-
              <div className="grid grid-cols-1 gap-2 mt-2">
                  <div>
                     <label className="text-xs text-gray-500">Role</label>
@@ -1993,7 +2099,10 @@ function AdminPanel({ user, setView, masterData }) {
             </button>
           </form>
         </div>
-      ) : (
+      )}
+
+      {/* --- KONTEN TAB: MASTER DATA (Tetap) --- */}
+      {activeTab === 'master' && (
         <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
           <form onSubmit={handleAddMaster} className="space-y-4">
             <div>
@@ -2013,9 +2122,34 @@ function AdminPanel({ user, setView, masterData }) {
           </form>
         </div>
       )}
+
+      {/* --- KONTEN TAB BARU: UPDATE HRD --- */}
+      {activeTab === 'news' && (
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+          <label className="text-xs font-bold text-gray-700 block mb-2">Isi Informasi Pengumuman HRD:</label>
+          <textarea 
+            className="w-full border p-3 rounded-xl text-sm mb-4 focus:ring-2 focus:ring-blue-500 outline-none" 
+            rows="5" 
+            placeholder="Ketik informasi penting untuk semua karyawan di sini..."
+            value={newsInput}
+            onChange={(e) => setNewsInput(e.target.value)}
+          ></textarea>
+          <button 
+            onClick={handleAddAnnouncement}
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold shadow-lg shadow-blue-200 active:scale-95 transition-all"
+          >
+            {loading ? 'Mengirim...' : 'Terbitkan Informasi Sekarang'}
+          </button>
+          <p className="text-[10px] text-gray-400 mt-3 italic text-center">
+            Informasi yang diterbitkan akan muncul sebagai jendela melayang di Dashboard setiap user saat login.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
+
 // --- 7. LOGIN SCREEN (TIDAK BERUBAH) ---
 function LoginScreen({ onLogin }) { 
   const [username, setUsername] = useState('');
