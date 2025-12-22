@@ -376,7 +376,7 @@ function Dashboard({ user, setUser, setView, masterData }) {
             
             <div className="p-6">
               <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 mb-6">
-                <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap italic">
+                <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
                   "{newsContent.isi}"
                 </p>
               </div>
