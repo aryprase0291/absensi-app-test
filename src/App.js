@@ -825,7 +825,7 @@ function RemarkScreen({ user, setView }) {
 
             {!isHRDOrAdmin && (
                 <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6">
-                    <h3 className="font-bold text-gray-700 mb-4 flex items-center gap-2"><Edit className="w-4 h-4"/> Buat Laporan Baru</h3>
+                    <h3 className="font-bold text-gray-700 mb-4 flex items-center gap-2"><Edit className="w-4 h-4"/> Buat Laporan</h3>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="text-xs font-bold text-gray-700 block mb-1">No. WhatsApp *</label>
@@ -838,9 +838,12 @@ function RemarkScreen({ user, setView }) {
                             <label className="text-xs font-bold text-gray-700 block mb-1">Jenis Koreksi/Laporan *</label>
                             <select className="w-full p-2.5 border rounded-lg text-sm bg-white" value={kategori} onChange={e => setKategori(e.target.value)}>
                                 <option>Koreksi Profil (Nama/Divisi/Lainnya)</option>
-                                <option>Koreksi Absensi (Lupa Absen/Salah Pencet)</option>
+                                <option>Koreksi Absensi (Lupa Absen Masuk/Pulang)</option>
                                 <option>Koreksi Cuti / Sisa Cuti</option>
                                 <option>Koreksi Shift Kerja</option>
+                                <option>Koreksi Jam Kerja</option>
+                                <option>Masukan dan Keluhan</option>
+                                <option>Pertanyaan</option>
                                 <option>Lainnya</option>
                             </select>
                         </div>
@@ -950,7 +953,7 @@ function AttendanceForm({ user, setUser, setView, editItem, setEditItem, masterD
   const NO_GPS_TYPES = ['Ijin', 'Cuti', 'Dinas Luar', 'Sakit', 'Cuti EO', 'Tukar Shift'];
   const NO_TIME_TYPES = ['Cuti', 'Dinas Luar', 'Sakit', 'Cuti EO']; 
   const H3_REQUIRED_TYPES = ['Ijin', 'Tukar Shift']; 
-  const UPLOAD_ALLOWED_TYPES = ['Dinas Luar', 'Cuti', 'Cuti EO']; 
+  const UPLOAD_ALLOWED_TYPES = ['Dinas Luar', 'Cuti', 'Cuti EO', 'Ijin']; 
 
   const isPhotoRequired = PHOTO_REQUIRED_TYPES.includes(type);
   const isGpsRequired = !NO_GPS_TYPES.includes(type);
