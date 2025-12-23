@@ -323,7 +323,7 @@ function Dashboard({ user, setUser, setView, masterData }) {
           Menu Absensi
       </h3> 
 
-      <div className="grid grid-cols-2 gap-4"> 
+      {/* <div className="grid grid-cols-2 gap-4"> 
         {allowedMenus.map((item) => { 
             const Icon = ICON_MAP[item.value] || Star; 
             const colorClass = COLOR_MAP[item.value] || 'bg-blue-400'; 
@@ -355,7 +355,61 @@ function Dashboard({ user, setUser, setView, masterData }) {
                 </button> 
             ) 
         })} 
-      </div> 
+      </div>  */}
+
+      <div className="grid grid-cols-2 gap-4"> 
+        {allowedMenus.map((item) => { 
+            const Icon = ICON_MAP[item.value] || Star; 
+            const colorClass = COLOR_MAP[item.value] || 'bg-blue-400'; 
+            const count = stats[item.value] || stats[item.value.toLowerCase()] || 0; 
+            const isAttendance = ['Hadir', 'Pulang'].includes(item.value);
+            
+            // --- LOGIKA DISABLE CUTI (LAMA) ---
+            const isCutiEmpty = item.value === 'Cuti' && (parseInt(user.sisaCuti) || 0) < 1;
+
+            // --- LOGIKA BARU: DISABLE IJIN JIKA SUDAH >= 4 HARI ---
+            // stats.ijin_usage kita dapat dari backend handleGetStats yang baru
+            const isIjinFull = item.value === 'Ijin' && (stats.ijin_usage || 0) >= 4;
+            
+            // Gabungkan kondisi disable
+            const isDisabled = isCutiEmpty || isIjinFull;
+
+            return ( 
+                <button 
+                    key={item.value} 
+                    disabled={isDisabled} // Matikan tombol
+                    onClick={() => { 
+                        if(isCutiEmpty) { alert('Sisa Cuti Anda Habis (0). Tidak dapat mengajukan cuti.'); return; }
+                        if(isIjinFull) { alert('Kuota Ijin bulan ini habis (Maks 4 Hari).'); return; }
+
+                        localStorage.setItem('absenType', item.value); 
+                        setView('form'); 
+                    }} 
+                    className={`bg-white p-4 rounded-xl shadow-sm border border-gray-100 transition-all duration-300 
+                    text-left group relative overflow-hidden transform 
+                    ${isDisabled ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:-translate-y-1 hover:shadow-lg'}`} 
+                > 
+                    <div className={`absolute -right-4 -bottom-4 w-20 h-20 rounded-full opacity-10 group-hover:scale-150 transition duration-500 ${colorClass}`}></div>
+                    
+                    {!isAttendance && count > 0 && !isDisabled && (
+                        <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-bl-xl shadow-sm z-10 animate-bounce">{count}</div>
+                    )} 
+ 
+                    <div className={`${colorClass} w-10 h-10 rounded-xl flex items-center justify-center text-white mb-3 shadow-md group-hover:scale-110 group-hover:rotate-3 transition`}>
+                        <Icon className="w-5 h-5" />
+                    </div> 
+                    
+                    <h4 className="font-bold text-gray-800 group-hover:text-blue-600 transition">{item.label}</h4> 
+                    <p className="text-[10px] text-gray-400 mt-1">
+                        {isAttendance 
+                            ? `Tap untuk ${item.label}` 
+                            : (isCutiEmpty ? 'Kuota Habis' : (isIjinFull ? 'Limit Tercapai (4/4)' : 'Pengajuan Form'))
+                        }
+                    </p> 
+                </button> 
+            ) 
+        })} 
+      </div>
 
       {/* --- PINDAHKAN MODAL KE SINI (DI DALAM RETURN) --- */}
       {showNews && newsContent && (
