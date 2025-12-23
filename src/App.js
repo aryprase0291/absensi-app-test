@@ -2637,6 +2637,14 @@ function DbAbsenScreen({ user, setView }) {
               </div>
             </div>
 
+ {/* --- [RESTORE] LOG WAKTU SCAN --- */}
+            <div className="mt-3">
+                <p className="text-[10px] text-gray-400 mb-1">Log Scan Mesin:</p>
+                <div className="bg-gray-50 p-2.5 rounded border border-gray-200 text-xs font-mono text-gray-600 break-words leading-relaxed">
+                    {item.waktuScan ? item.waktuScan.replace(/,/g, ', ') : '-'}
+                </div>
+            </div>
+
             {/* --- TOMBOL TAMBAHAN UNTUK IJIN --- */}
             {isLate && (
                 <div className="mt-3 pt-3 border-t border-dashed border-gray-200">
